@@ -11,7 +11,6 @@ import { exercise } from '@/data/exercises';
 import { HERO_IDS, hero, HeroId } from '@/data/heroes';
 import { combineHeat } from '@/data/muscles';
 import { PLANS } from '@/data/plans';
-import { DIET_STYLES, DietStyle } from '@/data/recipes';
 import { api, setApiToken } from '@/lib/api';
 import { dayKey, formatInt } from '@/lib/dates';
 import { GOALS, targets } from '@/lib/nutrition';
@@ -21,14 +20,13 @@ import type { Goal, Profile, Session, Sex } from '@/lib/types';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 type AuthResponse = { user: { username: string; email: string }; token: string; profile?: Record<string, unknown> | null };
-type Step = 'account' | 'hero' | 'body' | 'goal' | 'diet';
-const STEPS: Step[] = ['account', 'hero', 'body', 'goal', 'diet'];
+type Step = 'account' | 'hero' | 'body' | 'goal';
+const STEPS: Step[] = ['account', 'hero', 'body', 'goal'];
 const STEP_TITLE: Record<Step, string> = {
   account: 'CREATE YOUR ACCOUNT',
   hero: 'CHOOSE YOUR HERO',
   body: 'ABOUT YOUR BODY',
   goal: "WHAT'S THE GOAL?",
-  diet: 'HOW DO YOU EAT?',
 };
 
 const num = (s: string) => {
@@ -42,8 +40,9 @@ const planHeat = (id: HeroId) =>
   combineHeat(PLANS[id].days.flatMap((d) => d.slots.map((s) => ({ heat: exercise(s.exercise).heat, weight: s.sets }))));
 
 /**
- * The front door. Log in is one screen; sign up is five short steps
- * (account, hero, body, goal, diet) ending with your daily targets.
+ * The front door. Log in is one screen; sign up is four short steps
+ * (account, hero, body, goal) ending with your daily targets.
+ * Diet style is picked later, in the Diet tab.
  */
 export default function Auth() {
   const insets = useSafeAreaInsets();
@@ -69,10 +68,9 @@ export default function Auth() {
   const [weight, setWeight] = useState('');
   const [compMode, setCompMode] = useState<Profile['bodyComp']['mode']>('none');
   const [compValue, setCompValue] = useState('');
-  // Goal & diet
+  // Goal
   const [goal, setGoal] = useState<Goal>('bigger');
   const [goalWeight, setGoalWeight] = useState('');
-  const [diet, setDiet] = useState<DietStyle>('highProtein');
 
   const h = hero(heroId);
   const signup = mode === 'signup';
@@ -97,7 +95,6 @@ export default function Auth() {
     hero: [],
     body: ['age', 'height', 'weight', 'comp'],
     goal: ['goalWeight'],
-    diet: [],
   };
   const stepOk = stepFields[current].every((f) => !errors[f]);
 
@@ -116,10 +113,9 @@ export default function Auth() {
         : { mode: 'none' },
       goal,
       goalWeightKg: num(goalWeight) || defaultProfile.goalWeightKg,
-      dietStyle: diet,
       rivalName: '',
     }),
-    [name, heroId, sex, age, height, weight, compMode, compValue, goal, goalWeight, diet],
+    [name, heroId, sex, age, height, weight, compMode, compValue, goal, goalWeight],
   );
 
   const fail = (e: unknown) => setServerError(e instanceof Error ? e.message : 'Something went wrong');
@@ -154,7 +150,7 @@ export default function Auth() {
         if (t.email || t.username) return;
       }
       if (current === 'body' && !goalWeight) setGoalWeight(String(Math.round(num(weight) + (goal === 'bigger' ? 5 : 0))));
-      if (current === 'diet') return await createAccount();
+      if (current === 'goal') return await createAccount();
       setStep((s) => s + 1);
       setTried(false);
     } catch (e) {
@@ -283,24 +279,6 @@ export default function Auth() {
               );
             })}
             <Field label="Goal weight (kg)" value={goalWeight} onChangeText={setGoalWeight} error={tried ? errors.goalWeight : null} placeholder="85" keyboardType="decimal-pad" />
-          </>
-        ) : null}
-
-        {current === 'diet' ? (
-          <>
-            {(Object.keys(DIET_STYLES) as DietStyle[]).map((d) => {
-              const on = d === diet;
-              return (
-                <Pressable key={d} onPress={() => setDiet(d)} accessibilityRole="radio" accessibilityState={{ selected: on }}
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 11, borderRadius: radius.md, borderWidth: on ? 2 : 1, borderColor: on ? colors.green : colors.line, backgroundColor: on ? colors.greenSoft : colors.surface }}>
-                  <View style={{ flex: 1 }}>
-                    <T v="title" color={on ? colors.green : colors.text}>{DIET_STYLES[d].label}</T>
-                    <T v="small" style={{ fontSize: 11 }}>{DIET_STYLES[d].blurb}</T>
-                  </View>
-                  {on ? <Icon name="check" size={18} color={colors.green} strokeWidth={3} /> : null}
-                </Pressable>
-              );
-            })}
             <View style={{ backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: h.color, padding: 12, gap: 8 }}>
               <Row style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
                 <T v="kicker">Your daily target</T>
@@ -311,7 +289,7 @@ export default function Auth() {
                 <Stat label="Carbs" value={String(t.carbs)} unit="g" color={colors.amber} />
                 <Stat label="Fat" value={String(t.fat)} unit="g" color={colors.blue} />
               </Row>
-              <T v="small" style={{ fontSize: 11 }}>{t.explain} Goes up on hard training days. You can change all of this later in Me.</T>
+              <T v="small" style={{ fontSize: 11 }}>{t.explain} Goes up on hard training days. Pick your diet style in the Diet tab. You can change all of this later.</T>
             </View>
           </>
         ) : null}
@@ -323,7 +301,7 @@ export default function Auth() {
         ) : null}
 
         <Button
-          title={busy ? 'One sec…' : !signup ? 'Log in' : current === 'diet' ? 'Create account' : 'Next'}
+          title={busy ? 'One sec…' : !signup ? 'Log in' : current === 'goal' ? 'Create account' : 'Next'}
           color={h.color}
           size="lg"
           disabled={busy}

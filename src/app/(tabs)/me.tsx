@@ -8,7 +8,6 @@ import {
 } from '@/components/Settings';
 import { Bar, Card, Halftone, Panel, Row, Screen, Stat, T } from '@/components/ui';
 import { HERO_IDS, hero, HeroId } from '@/data/heroes';
-import { DIET_STYLES, DietStyle } from '@/data/recipes';
 import { api } from '@/lib/api';
 import { confirm, notify } from '@/lib/confirm';
 import { formatInt, formatKg } from '@/lib/dates';
@@ -19,7 +18,7 @@ import { finished, level, weekStreak } from '@/lib/workout';
 import { colors } from '@/theme/tokens';
 
 type Field =
-  | 'name' | 'username' | 'email' | 'weight' | 'height' | 'age' | 'sex' | 'bodyComp' | 'goal' | 'goalWeight' | 'diet' | 'hero' | 'rival';
+  | 'name' | 'username' | 'email' | 'weight' | 'height' | 'age' | 'sex' | 'bodyComp' | 'goal' | 'goalWeight' | 'hero' | 'rival';
 
 export default function Me() {
   const { state, actions } = useStore();
@@ -111,13 +110,11 @@ export default function Me() {
         </T>
       ) : null}
 
-      <Section title="Goal & diet">
+      <Section title="Goal">
         <SettingRow label="Goal" value={GOALS[p.goal].label} {...row('goal')}
           editor={<ChoiceEditor<Goal> accent={h.color} value={p.goal} options={(Object.keys(GOALS) as Goal[]).map((g) => ({ key: g, label: GOALS[g].label, sub: GOALS[g].sub }))} onPick={(goal) => set({ goal })} />} />
-        <SettingRow label="Goal weight" value={`${formatKg(p.goalWeightKg)} kg`} {...row('goalWeight')}
+        <SettingRow label="Goal weight" value={`${formatKg(p.goalWeightKg)} kg`} last {...row('goalWeight')}
           editor={<TextEditor initial={String(p.goalWeightKg)} accent={h.color} unit="kg" keyboard="decimal-pad" parse={parseNumber(30, 300)} error="30-300 kg" onCancel={close} onSave={(goalWeightKg) => set({ goalWeightKg })} />} />
-        <SettingRow label="Diet style" value={DIET_STYLES[p.dietStyle].label} hint="Changes your meal plan and macro split" last {...row('diet')}
-          editor={<ChoiceEditor<DietStyle> accent={colors.green} value={p.dietStyle} options={(Object.keys(DIET_STYLES) as DietStyle[]).map((d) => ({ key: d, label: DIET_STYLES[d].label }))} onPick={(dietStyle) => set({ dietStyle })} />} />
       </Section>
 
       <Section title="Training">

@@ -42,11 +42,26 @@ export default function Diet() {
         </Pressable>
       </Row>
       {pickStyle ? (
-        <Row style={{ flexWrap: 'wrap' }} gap={6}>
-          {(Object.keys(DIET_STYLES) as DietStyle[]).map((s) => (
-            <Chip key={s} label={DIET_STYLES[s].label} active={s === state.profile.dietStyle} color={colors.green} onPress={() => { actions.updateProfile({ dietStyle: s }); setPickStyle(false); }} />
-          ))}
-        </Row>
+        <View style={{ gap: 6 }}>
+          <T v="small">Your diet style sets your meal plan, shopping list and how your calories split into protein, carbs and fat.</T>
+          {(Object.keys(DIET_STYLES) as DietStyle[]).map((d) => {
+            const on = d === state.profile.dietStyle;
+            return (
+              <Pressable
+                key={d}
+                onPress={() => { actions.updateProfile({ dietStyle: d }); setPickStyle(false); }}
+                accessibilityRole="radio"
+                accessibilityState={{ selected: on }}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 10, padding: 11, borderRadius: 12, borderWidth: on ? 2 : 1, borderColor: on ? colors.green : colors.line, backgroundColor: on ? colors.greenSoft : colors.surface }}>
+                <View style={{ flex: 1 }}>
+                  <T v="title" color={on ? colors.green : colors.text}>{DIET_STYLES[d].label}</T>
+                  <T v="small" style={{ fontSize: 11 }}>{DIET_STYLES[d].blurb}</T>
+                </View>
+                {on ? <Icon name="check" size={18} color={colors.green} strokeWidth={3} /> : null}
+              </Pressable>
+            );
+          })}
+        </View>
       ) : null}
 
       <Panel color={colors.green} deep={colors.greenDeep}>
