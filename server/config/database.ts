@@ -14,8 +14,10 @@ const dbConfig = defineConfig({
   connection: env.get('DB_CONNECTION', 'sqlite'),
 
   connections: {
+    // The `sqlite3` driver ships prebuilt binaries that work on every Node version
+    // (Node-API), so installing never needs Python or C++ build tools.
     sqlite: {
-      client: 'better-sqlite3',
+      client: 'sqlite3',
       connection: { filename: app.tmpPath(app.inTest ? 'test.sqlite3' : 'db.sqlite3') },
       useNullAsDefault: true,
       migrations,
