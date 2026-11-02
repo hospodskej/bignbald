@@ -1,14 +1,12 @@
-import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 
 import { HeroBadge } from '@/components/HeroBadge';
-import { Icon } from '@/components/Icon';
 import {
   ChoiceEditor, parseEmail, parseNumber, parseText, parseUsername, Section, SettingRow, TextEditor,
 } from '@/components/Settings';
-import { Bar, Button, Card, Halftone, Panel, Row, Screen, Stat, T } from '@/components/ui';
+import { Bar, Card, Halftone, Panel, Row, Screen, Stat, T } from '@/components/ui';
 import { HERO_IDS, hero, HeroId } from '@/data/heroes';
 import { DIET_STYLES, DietStyle } from '@/data/recipes';
 import { confirm } from '@/lib/confirm';
@@ -52,7 +50,7 @@ export default function Me() {
           <HeroBadge id={p.hero} size={60} level={lvl.level} />
           <View style={{ flex: 1, gap: 2 }}>
             <T v="h1" numberOfLines={1}>{p.name.toUpperCase()}</T>
-            <T v="small">{acc.username ? `@${acc.username}` : 'Guest · not signed up'}</T>
+            <T v="small">{acc.username ? `@${acc.username}` : acc.email}</T>
             <T v="title" color={h.bright} style={{ fontSize: 12 }}>{h.name} · Level {lvl.level}</T>
           </View>
         </Row>
@@ -63,23 +61,6 @@ export default function Me() {
           <Stat label="XP to next" value={String(lvl.need - lvl.xp)} />
         </Row>
       </Panel>
-
-      {/* Account */}
-      {acc.status === 'guest' ? (
-        <Card tone={{ bg: h.soft, line: h.deep }}>
-          <Row gap={10} style={{ alignItems: 'flex-start' }}>
-            <Icon name="me" size={20} color={h.bright} active />
-            <View style={{ flex: 1, gap: 2 }}>
-              <T v="title">Create your account</T>
-              <T v="small">Keep your progress on every device, show up on the global leaderboard and duel your friends.</T>
-            </View>
-          </Row>
-          <Row gap={8}>
-            <View style={{ flex: 1 }}><Button title="Sign up" size="sm" color={h.color} onPress={() => router.push('/register')} /></View>
-            <View style={{ flex: 1 }}><Button title="Log in" size="sm" variant="outline" color={colors.muted} onPress={() => router.push({ pathname: '/register', params: { mode: 'login' } })} /></View>
-          </Row>
-        </Card>
-      ) : null}
 
       <Section title="Account">
         <SettingRow label="Display name" value={p.name} {...row('name')}
@@ -140,7 +121,10 @@ export default function Me() {
           editor={<TextEditor initial={p.rivalName} accent={h.color} parse={parseText(1, 20)} error="1 to 20 characters" onCancel={close} onSave={(rivalName) => set({ rivalName })} />} />
       </Section>
 
-      <Section title="Data">
+      <Section title="Session & data">
+        <Pressable onPress={() => confirm('Log out?', 'Your data stays on this device.', () => actions.updateAccount({ status: 'guest' }), 'Log out')} style={dataRow}>
+          <T v="body" color={colors.textDim}>Log out</T>
+        </Pressable>
         <Pressable onPress={() => confirm('Load demo data?', 'Replaces workouts and diet logs with 3 weeks of sample training.', actions.loadDemo, 'Load')} style={dataRow}>
           <T v="body" color={colors.textDim}>Load demo data</T>
         </Pressable>

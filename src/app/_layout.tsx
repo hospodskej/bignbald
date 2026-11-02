@@ -10,7 +10,7 @@ import { ActivityIndicator, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PhoneFrame } from '@/components/PhoneFrame';
-import { StoreProvider } from '@/lib/store';
+import { accountOf, StoreProvider, useStore } from '@/lib/store';
 import { colors, fonts } from '@/theme/tokens';
 
 const Loading = () => (
@@ -36,19 +36,35 @@ export default function RootLayout() {
       <PhoneFrame>
         {loaded ? (
           <StoreProvider fallback={<Loading />}>
-            <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
-              <Stack.Screen name="(tabs)" />
-              <Stack.Screen name="workout" options={{ gestureEnabled: false }} />
-              <Stack.Screen name="swap" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="rankup" options={{ animation: 'fade', gestureEnabled: false }} />
-              <Stack.Screen name="add-food" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-              <Stack.Screen name="register" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
-            </Stack>
+            <RootStack />
           </StoreProvider>
         ) : (
           <Loading />
         )}
       </PhoneFrame>
     </SafeAreaProvider>
+  );
+}
+
+/** Signed out: only the auth screen exists. Signed in: the whole app. */
+function RootStack() {
+  const { state } = useStore();
+  const signedIn = accountOf(state).status === 'registered';
+  return (
+    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.bg }, animation: 'slide_from_right' }}>
+      <Stack.Protected guard={!signedIn}>
+        <Stack.Screen name="auth" options={{ animation: 'fade' }} />
+      </Stack.Protected>
+      <Stack.Protected guard={signedIn}>
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="workout" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="swap" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="rankup" options={{ animation: 'fade', gestureEnabled: false }} />
+        <Stack.Screen name="add-food" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+        <Stack.Screen name="plan/[hero]" />
+        <Stack.Screen name="duel/[id]" />
+        <Stack.Screen name="groceries" />
+      </Stack.Protected>
+    </Stack>
   );
 }
