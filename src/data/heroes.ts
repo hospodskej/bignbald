@@ -11,7 +11,7 @@ export const HEROES = {
     bright: '#FF6B5E',
     deep: '#4A1A17',
     soft: '#2A1416',
-    tagline: 'Raw power and volume. Push, pull and two leg days, finished with an arms day.',
+    tagline: 'Raw power and volume.',
     tags: ['6 days', '5+ reps to failure'],
     coach: [
       'Make this one count.',
@@ -28,7 +28,7 @@ export const HEROES = {
     bright: '#82B5FF',
     deep: '#16294A',
     soft: '#121C2E',
-    tagline: 'Lean and athletic. Upper A, legs, Upper B, rest. Train a 4th day when you feel like it.',
+    tagline: 'Lean and athletic.',
     tags: ['3-4 days', 'Upper / lower'],
     coach: [
       'Light feet, strong back.',
