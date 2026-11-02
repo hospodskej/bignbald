@@ -23,4 +23,21 @@ export default class NewAccountController {
       token: token.value!.release(),
     })
   }
+
+  /**
+   * POST /auth/check: is this email / username still free? Lets the sign-up flow
+   * tell you on step 1 instead of after you've filled in everything else.
+   */
+  async check({ request }: HttpContext) {
+    const email = String(request.input('email', '')).trim().toLowerCase()
+    const username = String(request.input('username', '')).trim().toLowerCase()
+    const [emailTaken, usernameTaken] = await Promise.all([
+      email ? User.findBy('email', email) : null,
+      username ? User.findBy('username', username) : null,
+    ])
+    return {
+      email: emailTaken ? 'That email already has an account' : null,
+      username: usernameTaken ? 'That username is taken' : null,
+    }
+  }
 }

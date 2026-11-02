@@ -93,7 +93,9 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
        */
       signIn: (r: SignInResult) =>
         set((s) => {
-          const profile = { ...defaultProfile, ...(r.profile ?? s.profile) } as Profile;
+          // The server sends empty fields back as null; fall back to defaults for those.
+          const saved = Object.fromEntries(Object.entries(r.profile ?? s.profile).filter(([, v]) => v !== null && v !== undefined));
+          const profile = { ...defaultProfile, ...saved } as Profile;
           const base = emptyState(profile);
           return {
             ...base,

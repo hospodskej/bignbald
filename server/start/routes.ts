@@ -24,6 +24,7 @@ router
     router
       .group(() => {
         router.post('signup', [NewAccountController, 'store'])
+        router.post('check', [NewAccountController, 'check'])
         router.post('login', [AccessTokensController, 'store'])
       })
       .prefix('auth')

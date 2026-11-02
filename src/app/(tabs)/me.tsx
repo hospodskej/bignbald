@@ -64,10 +64,25 @@ export default function Me() {
         <Bar value={lvl.xp / lvl.need} color={h.color} height={5} />
         <Row gap={6}>
           <Stat label="Workouts" value={String(finished(state.history).length)} />
-          <Stat label="Streak" value={String(weekStreak(state.history))} unit="wk" />
+          <Stat label="Streak" value={String(weekStreak(state.history))} unit={weekStreak(state.history) === 1 ? 'week' : 'weeks'} />
           <Stat label="XP to next" value={String(lvl.need - lvl.xp)} />
         </Row>
       </Panel>
+
+      <WeightChart />
+
+      <Card>
+        <Row style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+          <T v="kicker">Daily target</T>
+          <T v="h1">{formatInt(t.kcal)}<T v="small"> kcal</T></T>
+        </Row>
+        <Row gap={6}>
+          <Stat label="Protein" value={String(t.protein)} unit="g" color={colors.green} />
+          <Stat label="Carbs" value={String(t.carbs)} unit="g" color={colors.amber} />
+          <Stat label="Fat" value={String(t.fat)} unit="g" color={colors.blue} />
+        </Row>
+        <T v="small" style={{ fontSize: 11 }}>{t.formula} · maintenance ~{formatInt(t.maintenance)} kcal. {t.explain} Hard training days add up to +15% protein.</T>
+      </Card>
 
       <Section title="Account">
         <SettingRow label="Display name" value={p.name} {...row('name')}
@@ -96,8 +111,6 @@ export default function Me() {
         </T>
       ) : null}
 
-      <WeightChart />
-
       <Section title="Goal & diet">
         <SettingRow label="Goal" value={GOALS[p.goal].label} {...row('goal')}
           editor={<ChoiceEditor<Goal> accent={h.color} value={p.goal} options={(Object.keys(GOALS) as Goal[]).map((g) => ({ key: g, label: GOALS[g].label, sub: GOALS[g].sub }))} onPick={(goal) => set({ goal })} />} />
@@ -106,19 +119,6 @@ export default function Me() {
         <SettingRow label="Diet style" value={DIET_STYLES[p.dietStyle].label} hint="Changes your meal plan and macro split" last {...row('diet')}
           editor={<ChoiceEditor<DietStyle> accent={colors.green} value={p.dietStyle} options={(Object.keys(DIET_STYLES) as DietStyle[]).map((d) => ({ key: d, label: DIET_STYLES[d].label }))} onPick={(dietStyle) => set({ dietStyle })} />} />
       </Section>
-
-      <Card>
-        <Row style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
-          <T v="kicker">Daily target</T>
-          <T v="h1">{formatInt(t.kcal)}<T v="small"> kcal</T></T>
-        </Row>
-        <Row gap={6}>
-          <Stat label="Protein" value={String(t.protein)} unit="g" color={colors.green} />
-          <Stat label="Carbs" value={String(t.carbs)} unit="g" color={colors.amber} />
-          <Stat label="Fat" value={String(t.fat)} unit="g" color={colors.blue} />
-        </Row>
-        <T v="small" style={{ fontSize: 11 }}>{t.formula} · maintenance ~{formatInt(t.maintenance)} kcal. {t.explain} Hard training days add up to +15% protein.</T>
-      </Card>
 
       <Section title="Training">
         <SettingRow label="Hero" value={h.name} hint="Your plan and your avatar" {...row('hero')}
@@ -187,13 +187,20 @@ function WeightChart() {
     <Card>
       <Row style={{ justifyContent: 'space-between' }}>
         <T v="kicker">Body weight</T>
-        <T v="small" color={delta >= 0 ? colors.green : colors.blue}>{delta >= 0 ? '+' : ''}{formatKg(Math.round(delta * 10) / 10)} kg · goal {formatKg(goal)} kg</T>
+        <T v="small" color={delta >= 0 ? colors.green : colors.blue}>
+          {log.length > 1 ? `${delta >= 0 ? '+' : ''}${formatKg(Math.round(delta * 10) / 10)} kg · ` : ''}goal {formatKg(goal)} kg
+        </T>
       </Row>
+      {log.length < 2 ? (
+        <T v="small">Your trend shows up here. Update your weight in Body below whenever you weigh in.</T>
+      ) : null}
+      {log.length > 1 ? (
       <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" accessibilityLabel="Body weight chart">
         <Line x1={0} y1={y(goal)} x2={W} y2={y(goal)} stroke={colors.lineStrong} strokeDasharray="4 4" />
         <Polyline points={log.map((w, i) => `${x(i)},${y(w.kg)}`).join(' ')} fill="none" stroke={h.color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
-        {log.length ? <Circle cx={x(log.length - 1)} cy={y(log[log.length - 1].kg)} r={4} fill={h.color} /> : null}
+        <Circle cx={x(log.length - 1)} cy={y(log[log.length - 1].kg)} r={4} fill={h.color} />
       </Svg>
+      ) : null}
     </Card>
   );
 }

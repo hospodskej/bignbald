@@ -5,6 +5,7 @@ export interface ApiDefinition {
   auth: {
     newAccount: {
       store: typeof routes['auth.new_account.store']
+      check: typeof routes['auth.new_account.check']
     }
     accessTokens: {
       store: typeof routes['auth.access_tokens.store']

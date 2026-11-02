@@ -14,6 +14,12 @@ const routes = {
     tokens: [[0,"api"],[0,"v1"],[0,"auth"],[0,"signup"]],
     types: placeholder as Registry['auth.new_account.store']['types'],
   },
+  'auth.new_account.check': {
+    methods: ["POST"],
+    pattern: '/api/v1/auth/check',
+    tokens: [[0,"api"],[0,"v1"],[0,"auth"],[0,"check"]],
+    types: placeholder as Registry['auth.new_account.check']['types'],
+  },
   'auth.access_tokens.store': {
     methods: ["POST"],
     pattern: '/api/v1/auth/login',

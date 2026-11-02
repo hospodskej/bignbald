@@ -21,6 +21,19 @@ export interface Registry {
       rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['store']>>> | { status: 422; response: { errors: SimpleError[] } }
     }
   }
+  'auth.new_account.check': {
+    methods: ["POST"]
+    pattern: '/api/v1/auth/check'
+    types: {
+      body: {}
+      paramsTuple: []
+      params: {}
+      query: {}
+      response: ExtractResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['check']>>>
+      errorResponse: ExtractErrorResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['check']>>>
+      rawResponse: ExtractRawResponse<Awaited<ReturnType<import('#controllers/new_account_controller').default['check']>>>
+    }
+  }
   'auth.access_tokens.store': {
     methods: ["POST"]
     pattern: '/api/v1/auth/login'

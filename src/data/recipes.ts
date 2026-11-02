@@ -6,12 +6,12 @@ export type MealSlot = (typeof MEAL_SLOTS)[number];
 export const SLOT_LABEL: Record<MealSlot, string> = { breakfast: 'Breakfast', lunch: 'Lunch', dinner: 'Dinner', snack: 'Snack' };
 
 export const DIET_STYLES = {
-  balanced: { label: 'Balanced', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
-  highProtein: { label: 'High-protein', fatPct: 0.27, proteinBoost: 1.1, carbCap: null as number | null },
-  mediterranean: { label: 'Mediterranean', fatPct: 0.35, proteinBoost: 1, carbCap: null as number | null },
-  vegetarian: { label: 'Vegetarian', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
-  vegan: { label: 'Vegan', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
-  keto: { label: 'Keto', fatPct: 0.7, proteinBoost: 1, carbCap: 30 as number | null },
+  balanced: { label: 'Balanced', blurb: 'A bit of everything. Easy to stick to.', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
+  highProtein: { label: 'High-protein', blurb: 'Extra protein for building muscle.', fatPct: 0.27, proteinBoost: 1.1, carbCap: null as number | null },
+  mediterranean: { label: 'Mediterranean', blurb: 'Fish, olive oil, veg and grains.', fatPct: 0.35, proteinBoost: 1, carbCap: null as number | null },
+  vegetarian: { label: 'Vegetarian', blurb: 'No meat or fish. Eggs and dairy are in.', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
+  vegan: { label: 'Vegan', blurb: 'Fully plant-based.', fatPct: 0.3, proteinBoost: 1, carbCap: null as number | null },
+  keto: { label: 'Keto', blurb: 'Very low carb, high fat. Max 30 g carbs a day.', fatPct: 0.7, proteinBoost: 1, carbCap: 30 as number | null },
 } as const;
 export type DietStyle = keyof typeof DIET_STYLES;
 

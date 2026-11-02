@@ -51,7 +51,7 @@ export default function Home() {
         </View>
         <Row gap={5} style={{ backgroundColor: h.soft, borderColor: h.deep, borderWidth: 1, borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 }}>
           <Icon name="flame" size={16} color={h.bright} />
-          <T v="title" style={{ fontSize: 13 }}>{weekStreak(state.history)} wk</T>
+          <T v="title" style={{ fontSize: 13 }}>{weekStreak(state.history)} {weekStreak(state.history) === 1 ? 'week' : 'weeks'}</T>
         </Row>
       </Row>
 

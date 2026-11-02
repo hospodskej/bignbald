@@ -62,6 +62,23 @@ test.group('Accounts', () => {
     assert.equal(body(b).errors[0].message, 'That username is taken')
   })
 
+  test('check tells you a username or email is taken before signing up', async ({
+    client,
+    assert,
+  }) => {
+    const taken = await client
+      .post(`${API}/auth/check`)
+      .json({ email: 'PAVEL@example.com', username: 'pavel_lifts' })
+    assert.deepEqual(taken.body(), {
+      email: 'That email already has an account',
+      username: 'That username is taken',
+    })
+    const free = await client
+      .post(`${API}/auth/check`)
+      .json({ email: 'new@example.com', username: 'newbie' })
+    assert.deepEqual(free.body(), { email: null, username: null })
+  })
+
   test('bad input is rejected', async ({ client }) => {
     const res = await client
       .post(`${API}/auth/signup`)

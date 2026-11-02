@@ -5,6 +5,7 @@ type ParamValue = string | number | bigint | boolean
 export type ScannedRoutes = {
   ALL: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
+    'auth.new_account.check': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'account.profile.show': { paramsTuple?: []; params?: {} }
     'account.profile.update': { paramsTuple?: []; params?: {} }
@@ -37,6 +38,7 @@ export type ScannedRoutes = {
   }
   POST: {
     'auth.new_account.store': { paramsTuple?: []; params?: {} }
+    'auth.new_account.check': { paramsTuple?: []; params?: {} }
     'auth.access_tokens.store': { paramsTuple?: []; params?: {} }
     'account.access_tokens.destroy': { paramsTuple?: []; params?: {} }
     'account.workouts.store': { paramsTuple?: []; params?: {} }
