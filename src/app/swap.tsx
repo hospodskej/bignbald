@@ -47,9 +47,9 @@ export default function Swap() {
             onPress={() => pick(o.id)}
             style={({ pressed }) => ({ opacity: pressed ? 0.85 : 1 })}>
             <Row gap={12} style={{ padding: 8, borderRadius: 14, borderWidth: selected ? 2 : 1, borderColor: selected ? h.color : colors.line, backgroundColor: selected ? h.soft : colors.surface }}>
-              <LiftAnimation pose={o.pose} gear={o.gear} accent={h.color} size={64} playing={selected} />
+              <LiftAnimation pose={o.pose} gear={o.gear} accent={h.color} size={54} playing={selected} />
               <View style={{ flex: 1, gap: 4 }}>
-                <T v="title" style={{ fontSize: 15 }}>{o.name}</T>
+                <T v="title" style={{ fontSize: 14 }}>{o.name}</T>
                 <T v="small">{last ? `Last: ${formatKg(parseFloat(last.kg))} kg × ${last.reps}${o.perSide ? ' each' : ''}` : 'Never logged'}</T>
                 <RankPill rank={rankOf(state.history, o.id)} short />
               </View>

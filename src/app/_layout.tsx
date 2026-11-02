@@ -42,6 +42,7 @@ export default function RootLayout() {
               <Stack.Screen name="swap" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
               <Stack.Screen name="rankup" options={{ animation: 'fade', gestureEnabled: false }} />
               <Stack.Screen name="add-food" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
+              <Stack.Screen name="register" options={{ presentation: 'modal', animation: 'slide_from_bottom' }} />
             </Stack>
           </StoreProvider>
         ) : (

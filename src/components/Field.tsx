@@ -32,7 +32,7 @@ export function NumberField({ label, value, unit, onCommit, decimals = true, sty
           onSubmitEditing={commit}
           keyboardType={decimals ? 'decimal-pad' : 'number-pad'}
           selectTextOnFocus
-          style={[{ flex: 1, minWidth: 0, fontFamily: fonts.display, fontSize: 26, color: colors.text, padding: 0 }, style]}
+          style={[{ flex: 1, minWidth: 0, fontFamily: fonts.display, fontSize: 21, color: colors.text, padding: 0 }, style]}
         />
         {unit ? <T v="small">{unit}</T> : null}
       </View>
@@ -50,7 +50,7 @@ export function TextField({ label, value, onChange, placeholder }: { label: stri
         onChangeText={onChange}
         placeholder={placeholder}
         placeholderTextColor={colors.faint}
-        style={{ fontFamily: fonts.semibold, fontSize: 17, color: colors.text, padding: 0 }}
+        style={{ fontFamily: fonts.semibold, fontSize: 14, color: colors.text, padding: 0 }}
       />
     </View>
   );

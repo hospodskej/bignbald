@@ -43,15 +43,15 @@ export default function DuelScreen() {
           const win = l.you > l.them ? 'you' : l.them > l.you ? 'them' : 'tie';
           return (
             <View key={l.id} style={{ gap: 6 }}>
-              <T v="title" style={{ fontSize: 14, textAlign: 'center' }}>{l.name}</T>
+              <T v="title" style={{ fontSize: 13, textAlign: 'center' }}>{l.name}</T>
               <Row style={{ justifyContent: 'space-between' }}>
                 <View style={{ alignItems: 'flex-start', gap: 4, opacity: win === 'them' ? 0.55 : 1 }}>
-                  <T v="h2" color={hero(me).bright} style={{ fontSize: 20 }}>{formatKg(l.you)} kg</T>
+                  <T v="h2" color={hero(me).bright} style={{ fontSize: 16 }}>{formatKg(l.you)} kg</T>
                   <RankPill rank={l.youRank} short />
                 </View>
                 <T v="kicker" color={colors.faint}>{win === 'tie' ? 'tie' : win === 'you' ? '◀ win' : 'win ▶'}</T>
                 <View style={{ alignItems: 'flex-end', gap: 4, opacity: win === 'you' ? 0.55 : 1 }}>
-                  <T v="h2" color={hero(them).bright} style={{ fontSize: 20 }}>{formatKg(l.them)} kg</T>
+                  <T v="h2" color={hero(them).bright} style={{ fontSize: 16 }}>{formatKg(l.them)} kg</T>
                   <RankPill rank={l.themRank} short />
                 </View>
               </Row>

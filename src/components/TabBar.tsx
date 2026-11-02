@@ -21,7 +21,7 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
   const { state: app } = useStore();
   const accent = hero(app.profile.hero).color;
   return (
-    <View style={{ flexDirection: 'row', backgroundColor: '#10131A', borderTopWidth: 1, borderTopColor: '#222833', paddingTop: 8, paddingBottom: Math.max(insets.bottom, 10), paddingHorizontal: 6 }}>
+    <View style={{ flexDirection: 'row', backgroundColor: '#10131A', borderTopWidth: 1, borderTopColor: '#222833', paddingTop: 6, paddingBottom: Math.max(insets.bottom, 10), paddingHorizontal: 6 }}>
       {state.routes.map((route, i) => {
         const tab = TABS[route.name];
         if (!tab) return null;
@@ -36,9 +36,9 @@ export function TabBar({ state, navigateToTab }: BottomTabBarProps) {
             onPress={() => {
               if (!focused) navigateToTab(route.key);
             }}
-            style={{ flex: 1, alignItems: 'center', gap: 3, minHeight: 48 }}>
-            <View style={{ width: 46, height: 30, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? hero(app.profile.hero).soft : 'transparent' }}>
-              <Icon name={tab.icon} size={24} color={color} active={focused} />
+            style={{ flex: 1, alignItems: 'center', gap: 3, minHeight: 42 }}>
+            <View style={{ width: 40, height: 26, borderRadius: 10, alignItems: 'center', justifyContent: 'center', backgroundColor: focused ? hero(app.profile.hero).soft : 'transparent' }}>
+              <Icon name={tab.icon} size={21} color={color} active={focused} />
             </View>
             <Text style={{ fontFamily: focused ? fonts.bold : fonts.medium, fontSize: 11, color }}>{tab.label}</Text>
           </Pressable>

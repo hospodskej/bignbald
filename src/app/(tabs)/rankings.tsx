@@ -59,7 +59,7 @@ function Duels() {
         return (
           <Pressable key={r.id} onPress={() => router.push({ pathname: '/duel/[id]', params: { id: r.id } })} accessibilityRole="button">
             <Row gap={12} style={{ backgroundColor: colors.surface, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.line }}>
-              <HeroBadge id={r.hero} size={44} />
+              <HeroBadge id={r.hero} size={35} />
               <View style={{ flex: 1 }}>
                 <T v="title">{r.name}</T>
                 <T v="small">{hero(r.hero).short} · {lead > 0 ? `you lead by ${lead}` : lead < 0 ? `they lead by ${-lead}` : 'all square'}</T>
@@ -91,11 +91,11 @@ function Board() {
       <Row gap={8} style={{ alignItems: 'flex-end' }}>
         {podium.map((r, i) => (
           <View key={r.id} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-            <HeroBadge id={r.hero} size={50} />
-            <T v="title" numberOfLines={1} style={{ fontSize: 13 }}>{r.name}</T>
-            <T v="h2" style={{ fontSize: 18 }}>{formatKg(r.kg)} kg</T>
+            <HeroBadge id={r.hero} size={40} />
+            <T v="title" numberOfLines={1} style={{ fontSize: 12 }}>{r.name}</T>
+            <T v="h2" style={{ fontSize: 14 }}>{formatKg(r.kg)} kg</T>
             <View style={{ width: '100%', height: [70, 96, 54][i], borderTopLeftRadius: 12, borderTopRightRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: ['#C9D1DA', '#F2C14E', '#D08B57'][i], alignItems: 'center', paddingTop: 6 }}>
-              <T v="display" color={['#C9D1DA', '#F2C14E', '#D08B57'][i]} style={{ fontSize: 28 }}>{r.position}</T>
+              <T v="display" color={['#C9D1DA', '#F2C14E', '#D08B57'][i]} style={{ fontSize: 22 }}>{r.position}</T>
             </View>
           </View>
         ))}
@@ -117,15 +117,15 @@ function BoardRow({ r }: { r: ReturnType<typeof leaderboard>[number] }) {
   const h = hero(r.hero);
   return (
     <Row gap={12} style={{ backgroundColor: r.you ? h.soft : colors.surface, borderColor: r.you ? h.color : colors.surface, borderWidth: 1, borderRadius: 12, padding: 10 }}>
-      <T v="h2" color={r.you ? h.bright : colors.muted} style={{ width: 34, fontSize: 18 }}>{r.position}</T>
-      <HeroBadge id={r.hero} size={36} />
+      <T v="h2" color={r.you ? h.bright : colors.muted} style={{ width: 34, fontSize: 14 }}>{r.position}</T>
+      <HeroBadge id={r.hero} size={29} />
       <View style={{ flex: 1 }}>
-        <T v="title" style={{ fontSize: 14 }}>{r.you ? 'You' : r.name}</T>
+        <T v="title" style={{ fontSize: 13 }}>{r.you ? 'You' : r.name}</T>
         <T v="small" style={{ fontSize: 12 }}>{r.you ? h.short : `${r.country} · ${h.short}`}</T>
       </View>
       <View style={{ alignItems: 'flex-end' }}>
-        <T v="title" style={{ fontSize: 14 }}>{formatKg(r.kg)} kg</T>
-        <T v="h2" color={r.rankColor} style={{ fontSize: 14 }}>{r.rankLabel.toUpperCase()}</T>
+        <T v="title" style={{ fontSize: 13 }}>{formatKg(r.kg)} kg</T>
+        <T v="h2" color={r.rankColor} style={{ fontSize: 13 }}>{r.rankLabel.toUpperCase()}</T>
       </View>
     </Row>
   );

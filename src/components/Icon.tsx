@@ -1,3 +1,4 @@
+import { View } from 'react-native';
 import Svg, { Circle, Path, Rect } from 'react-native-svg';
 
 import { colors } from '@/theme/tokens';
@@ -126,9 +127,12 @@ export function Icon({ name, size = 24, color = colors.text, active = false, str
   })();
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24" accessibilityElementsHidden importantForAccessibility="no-hide-descendants">
-      {body}
-    </Svg>
+    // Decorative: hidden from screen readers. The View translates this correctly on every platform.
+    <View accessibilityElementsHidden importantForAccessibility="no-hide-descendants" pointerEvents="none">
+      <Svg width={size} height={size} viewBox="0 0 24 24">
+        {body}
+      </Svg>
+    </View>
   );
 }
 

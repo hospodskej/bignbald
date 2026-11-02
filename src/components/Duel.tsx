@@ -39,9 +39,9 @@ export function VersusRow({ label, you, them, youHero, themHero, format = format
   return (
     <View style={{ gap: 5 }}>
       <Row style={{ justifyContent: 'space-between' }}>
-        <T v="h2" color={win === 'you' ? hero(youHero).bright : colors.muted} style={{ fontSize: 20 }}>{format(you)}</T>
+        <T v="h2" color={win === 'you' ? hero(youHero).bright : colors.muted} style={{ fontSize: 16 }}>{format(you)}</T>
         <T v="kicker" style={{ fontSize: 10 }}>{label}</T>
-        <T v="h2" color={win === 'them' ? hero(themHero).bright : colors.muted} style={{ fontSize: 20 }}>{format(them)}</T>
+        <T v="h2" color={win === 'them' ? hero(themHero).bright : colors.muted} style={{ fontSize: 16 }}>{format(them)}</T>
       </Row>
       <View style={{ flexDirection: 'row', height: 7, gap: 3, borderRadius: 7, overflow: 'hidden' }}>
         <View style={{ flex: Math.max(0.05, you), backgroundColor: hero(youHero).color, opacity: win === 'them' ? 0.45 : 1 }} />

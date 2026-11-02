@@ -40,13 +40,13 @@ export default function AddFood() {
         </Row>
         <View style={{ backgroundColor: colors.surface, borderRadius: radius.md, borderWidth: 1, borderColor: colors.line, padding: 12 }}>
           <T v="kicker" style={{ fontSize: 10 }}>Amount (g)</T>
-          <TextInput accessibilityLabel="Grams" value={grams} onChangeText={setGrams} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={colors.faint} style={{ fontFamily: fonts.display, fontSize: 34, color: colors.text, padding: 0 }} />
+          <TextInput accessibilityLabel="Grams" value={grams} onChangeText={setGrams} keyboardType="decimal-pad" placeholder="0" placeholderTextColor={colors.faint} style={{ fontFamily: fonts.display, fontSize: 27, color: colors.text, padding: 0 }} />
         </View>
         <Row gap={8}>
           {(['kcal', 'protein', 'carbs', 'fat'] as const).map((k) => (
             <View key={k} style={{ flex: 1, backgroundColor: colors.surfaceSunk, borderRadius: 10, padding: 10 }}>
               <T v="kicker" style={{ fontSize: 9 }}>{k}</T>
-              <T v="h2" style={{ fontSize: 20 }}>{k === 'kcal' ? Math.round(n(k)) : n(k)}</T>
+              <T v="h2" style={{ fontSize: 16 }}>{k === 'kcal' ? Math.round(n(k)) : n(k)}</T>
             </View>
           ))}
         </Row>
@@ -61,7 +61,7 @@ export default function AddFood() {
       <Header kicker="Diet" title="ADD FOOD" color={colors.green} />
       <Row gap={8}>
         <Row gap={8} style={{ flex: 1, height: 48, paddingHorizontal: 14, borderRadius: radius.md, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line }}>
-          <TextInput accessibilityLabel="Search foods" value={q} onChangeText={setQ} placeholder="Search skyr, chicken, oats…" placeholderTextColor={colors.faint} style={{ flex: 1, fontFamily: fonts.medium, fontSize: 15, color: colors.text }} />
+          <TextInput accessibilityLabel="Search foods" value={q} onChangeText={setQ} placeholder="Search skyr, chicken, oats…" placeholderTextColor={colors.faint} style={{ flex: 1, fontFamily: fonts.medium, fontSize: 14, color: colors.text }} />
         </Row>
         <Pressable
           accessibilityRole="button"
@@ -75,7 +75,7 @@ export default function AddFood() {
         <Pressable key={f.id} onPress={() => { setPicked(f); setGrams(String(f.serving.grams)); }} accessibilityRole="button">
           <Row gap={12} style={{ backgroundColor: colors.surface, borderRadius: 12, padding: 12 }}>
             <View style={{ flex: 1 }}>
-              <T v="title" style={{ fontSize: 15 }}>{f.name}</T>
+              <T v="title" style={{ fontSize: 14 }}>{f.name}</T>
               <T v="small">{f.aisle} · per 100 g: {f.per100.kcal} kcal · {f.per100.protein} g protein</T>
             </View>
             <Icon name="plus" size={18} color={colors.green} />

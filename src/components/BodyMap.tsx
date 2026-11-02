@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { View } from 'react-native';
+import { Platform, View } from 'react-native';
 import Svg, { G, Path } from 'react-native-svg';
 
 import { Heat, MuscleId, MUSCLES } from '@/data/muscles';
@@ -86,6 +86,9 @@ const SCALE = ['#2A303B', '#4E232A', '#7C262C', '#AE2B2A', '#E2392F', '#FF5D3F']
 export const HEAT_SCALE = SCALE;
 
 const level = (heat: Heat, m: MuscleId) => heat[m] ?? 0;
+/** react-native-svg on web leaks touch-responder props into the DOM; a plain click handler is clean there. */
+const tapProps = (fn?: () => void) => (!fn ? {} : Platform.OS === 'web' ? ({ onClick: fn } as object) : { onPress: fn });
+
 const fill = (v: number) => SCALE[Math.round(Math.max(0, Math.min(1, v)) * (SCALE.length - 1))];
 
 function Figure({ shapes, heat, height, onPick, picked }: {
@@ -103,7 +106,7 @@ function Figure({ shapes, heat, height, onPick, picked }: {
               fill={fill(level(heat, s.m))}
               stroke={picked === s.m ? colors.text : colors.bg}
               strokeWidth={picked === s.m ? 2 : 1.4}
-              onPress={onPick ? () => onPick(s.m) : undefined}
+              {...tapProps(onPick ? () => onPick(s.m) : undefined)}
             />
           )),
         )}

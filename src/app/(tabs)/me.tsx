@@ -1,125 +1,181 @@
 import { router } from 'expo-router';
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 import Svg, { Circle, Line, Polyline } from 'react-native-svg';
 
-import { NumberField, TextField } from '@/components/Field';
 import { HeroBadge } from '@/components/HeroBadge';
-import { Bar, Button, Card, Chip, Panel, Row, Screen, Stat, T } from '@/components/ui';
-import { hero } from '@/data/heroes';
+import { Icon } from '@/components/Icon';
+import {
+  ChoiceEditor, parseEmail, parseNumber, parseText, parseUsername, Section, SettingRow, TextEditor,
+} from '@/components/Settings';
+import { Bar, Button, Card, Halftone, Panel, Row, Screen, Stat, T } from '@/components/ui';
+import { HERO_IDS, hero, HeroId } from '@/data/heroes';
 import { DIET_STYLES, DietStyle } from '@/data/recipes';
 import { confirm } from '@/lib/confirm';
 import { formatInt, formatKg } from '@/lib/dates';
 import { GOALS, leanMassKg, targets } from '@/lib/nutrition';
-import { useStore } from '@/lib/store';
-import type { Goal, Profile } from '@/lib/types';
-import { level } from '@/lib/workout';
+import { accountOf, useStore } from '@/lib/store';
+import type { Goal, Profile, Sex } from '@/lib/types';
+import { finished, level, weekStreak } from '@/lib/workout';
 import { colors } from '@/theme/tokens';
+
+type Field =
+  | 'name' | 'username' | 'email' | 'weight' | 'height' | 'age' | 'sex' | 'bodyComp' | 'goal' | 'goalWeight' | 'diet' | 'hero' | 'rival';
 
 export default function Me() {
   const { state, actions } = useStore();
   const p = state.profile;
+  const acc = accountOf(state);
   const h = hero(p.hero);
   const lvl = level(state.history);
   const t = targets(p);
   const lean = leanMassKg(p);
-  const set = (patch: Partial<Profile>) => actions.updateProfile(patch);
+  const [editing, setEditing] = useState<Field | null>(null);
+
+  const set = (patch: Partial<Profile>) => {
+    actions.updateProfile(patch);
+    setEditing(null);
+  };
+  /** Props for one row: open/close it, and a ready-made Save/Cancel text editor when asked. */
+  const row = (f: Field) => ({ open: editing === f, onToggle: () => setEditing((e) => (e === f ? null : f)) });
+  const close = () => setEditing(null);
+
+  const bodyCompLabel =
+    p.bodyComp.mode === 'bodyFat' ? `${p.bodyComp.pct}% body fat` : p.bodyComp.mode === 'leanMass' ? `${formatKg(p.bodyComp.kg)} kg lean` : '';
 
   return (
     <Screen>
-      <Row gap={14}>
-        <HeroBadge id={p.hero} size={80} level={lvl.level} />
-        <View style={{ flex: 1, gap: 4 }}>
-          <T v="h1" numberOfLines={1}>{p.name.toUpperCase()}</T>
-          <T v="title" color={h.bright} style={{ fontSize: 13 }}>{h.name} · Level {lvl.level}</T>
-          <Bar value={lvl.xp / lvl.need} color={h.color} height={6} />
-        </View>
-      </Row>
-
-      <TextField label="Name" value={p.name} onChange={(name) => set({ name })} />
-
-      <T v="kicker" style={{ marginTop: 6 }}>Body</T>
-      <Row gap={8}>
-        <NumberField label="Weight" unit="kg" value={p.weightKg} onCommit={(kg) => actions.logWeight(kg)} />
-        <NumberField label="Height" unit="cm" value={p.heightCm} decimals={false} onCommit={(heightCm) => set({ heightCm })} />
-        <NumberField label="Age" unit="yrs" value={p.age} decimals={false} onCommit={(age) => set({ age })} />
-      </Row>
-      <Row gap={6}>
-        <Chip label="Male" active={p.sex === 'male'} color={h.color} onPress={() => set({ sex: 'male' })} />
-        <Chip label="Female" active={p.sex === 'female'} color={h.color} onPress={() => set({ sex: 'female' })} />
-      </Row>
-
-      <Card>
-        <T v="kicker">Body composition (optional)</T>
-        <T v="small">Know your body fat or muscle mass (smart scale, DEXA, InBody)? Add it and calories and protein are based on your lean mass, not total weight. Much more accurate for big lifters.</T>
-        <Row gap={6} style={{ flexWrap: 'wrap' }}>
-          <Chip label="Don't know" active={p.bodyComp.mode === 'none'} color={h.color} onPress={() => set({ bodyComp: { mode: 'none' } })} />
-          <Chip label="Body fat %" active={p.bodyComp.mode === 'bodyFat'} color={h.color} onPress={() => set({ bodyComp: { mode: 'bodyFat', pct: 20 } })} />
-          <Chip label="Muscle / lean mass" active={p.bodyComp.mode === 'leanMass'} color={h.color} onPress={() => set({ bodyComp: { mode: 'leanMass', kg: Math.round(p.weightKg * 0.75) } })} />
+      {/* Identity */}
+      <Panel color={h.color} deep={h.deep} bg="#14121A">
+        <Halftone color={h.color} opacity={0.2} style={{ left: '50%' }} />
+        <Row gap={12}>
+          <HeroBadge id={p.hero} size={60} level={lvl.level} />
+          <View style={{ flex: 1, gap: 2 }}>
+            <T v="h1" numberOfLines={1}>{p.name.toUpperCase()}</T>
+            <T v="small">{acc.username ? `@${acc.username}` : 'Guest · not signed up'}</T>
+            <T v="title" color={h.bright} style={{ fontSize: 12 }}>{h.name} · Level {lvl.level}</T>
+          </View>
         </Row>
-        {p.bodyComp.mode === 'bodyFat' ? (
-          <NumberField label="Body fat" unit="%" value={p.bodyComp.pct} onCommit={(pct) => set({ bodyComp: { mode: 'bodyFat', pct: Math.min(60, pct) } })} />
-        ) : null}
-        {p.bodyComp.mode === 'leanMass' ? (
-          <NumberField label="Muscle / lean mass" unit="kg" value={p.bodyComp.kg} onCommit={(kg) => set({ bodyComp: { mode: 'leanMass', kg: Math.min(p.weightKg, kg) } })} />
-        ) : null}
-        {lean ? (
-          <T v="small" color={colors.textDim}>
-            Lean mass {formatKg(Math.round(lean * 10) / 10)} kg · fat mass {formatKg(Math.round((p.weightKg - lean) * 10) / 10)} kg ({Math.round((1 - lean / p.weightKg) * 100)}%)
-          </T>
-        ) : null}
-      </Card>
+        <Bar value={lvl.xp / lvl.need} color={h.color} height={5} />
+        <Row gap={6}>
+          <Stat label="Workouts" value={String(finished(state.history).length)} />
+          <Stat label="Streak" value={String(weekStreak(state.history))} unit="wk" />
+          <Stat label="XP to next" value={String(lvl.need - lvl.xp)} />
+        </Row>
+      </Panel>
+
+      {/* Account */}
+      {acc.status === 'guest' ? (
+        <Card tone={{ bg: h.soft, line: h.deep }}>
+          <Row gap={10} style={{ alignItems: 'flex-start' }}>
+            <Icon name="me" size={20} color={h.bright} active />
+            <View style={{ flex: 1, gap: 2 }}>
+              <T v="title">Create your account</T>
+              <T v="small">Keep your progress on every device, show up on the global leaderboard and duel your friends.</T>
+            </View>
+          </Row>
+          <Row gap={8}>
+            <View style={{ flex: 1 }}><Button title="Sign up" size="sm" color={h.color} onPress={() => router.push('/register')} /></View>
+            <View style={{ flex: 1 }}><Button title="Log in" size="sm" variant="outline" color={colors.muted} onPress={() => router.push({ pathname: '/register', params: { mode: 'login' } })} /></View>
+          </Row>
+        </Card>
+      ) : null}
+
+      <Section title="Account">
+        <SettingRow label="Display name" value={p.name} {...row('name')}
+          editor={<TextEditor initial={p.name} accent={h.color} parse={parseText(1, 24)} error="1 to 24 characters" onCancel={close} onSave={(name) => set({ name })} />} />
+        <SettingRow label="Username" value={acc.username ? `@${acc.username}` : ''} hint="Shown on leaderboards" {...row('username')}
+          editor={<TextEditor initial={acc.username} accent={h.color} placeholder="ironbro_99" parse={parseUsername} error="3-20 letters, numbers, _ or ." onCancel={close} onSave={(username) => { actions.updateAccount({ username }); close(); }} />} />
+        <SettingRow label="Email" value={acc.email} last {...row('email')}
+          editor={<TextEditor initial={acc.email} accent={h.color} keyboard="email-address" placeholder="you@example.com" parse={parseEmail} error="Not a valid email" onCancel={close} onSave={(email) => { actions.updateAccount({ email }); close(); }} />} />
+      </Section>
+
+      <Section title="Body">
+        <SettingRow label="Weight" value={`${formatKg(p.weightKg)} kg`} hint="Saving logs today's weight" {...row('weight')}
+          editor={<TextEditor initial={String(p.weightKg)} accent={h.color} unit="kg" keyboard="decimal-pad" parse={parseNumber(30, 300)} error="30-300 kg" onCancel={close} onSave={(kg) => { actions.logWeight(kg); close(); }} />} />
+        <SettingRow label="Height" value={`${p.heightCm} cm`} {...row('height')}
+          editor={<TextEditor initial={String(p.heightCm)} accent={h.color} unit="cm" keyboard="number-pad" parse={parseNumber(120, 230, false)} error="120-230 cm" onCancel={close} onSave={(heightCm) => set({ heightCm })} />} />
+        <SettingRow label="Age" value={`${p.age}`} {...row('age')}
+          editor={<TextEditor initial={String(p.age)} accent={h.color} unit="years" keyboard="number-pad" parse={parseNumber(13, 99, false)} error="13-99" onCancel={close} onSave={(age) => set({ age })} />} />
+        <SettingRow label="Sex" value={p.sex === 'male' ? 'Male' : 'Female'} hint="Used for calorie and micronutrient targets" {...row('sex')}
+          editor={<ChoiceEditor<Sex> accent={h.color} value={p.sex} options={[{ key: 'male', label: 'Male' }, { key: 'female', label: 'Female' }]} onPick={(sex) => set({ sex })} />} />
+        <SettingRow label="Body composition" value={bodyCompLabel} hint="Optional · makes targets more accurate" last {...row('bodyComp')}
+          editor={<BodyCompEditor accent={h.color} profile={p} onCancel={close} onSave={(bodyComp) => set({ bodyComp })} />} />
+      </Section>
+      {lean ? (
+        <T v="small" style={{ marginTop: -4, paddingHorizontal: 2 }}>
+          Lean mass {formatKg(Math.round(lean * 10) / 10)} kg · fat {formatKg(Math.round((p.weightKg - lean) * 10) / 10)} kg ({Math.round((1 - lean / p.weightKg) * 100)}%)
+        </T>
+      ) : null}
 
       <WeightChart />
 
-      <T v="kicker" style={{ marginTop: 6 }}>Your goal</T>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-        {(Object.keys(GOALS) as Goal[]).map((g) => {
-          const on = p.goal === g;
-          return (
-            <Pressable key={g} onPress={() => set({ goal: g })} accessibilityRole="radio" accessibilityState={{ selected: on }}
-              style={{ width: '48%', minHeight: 70, padding: 12, borderRadius: 14, borderWidth: 2, borderColor: on ? h.color : colors.line, backgroundColor: on ? h.soft : colors.surface, gap: 3 }}>
-              <T v="h2" color={on ? h.bright : colors.text} style={{ fontSize: 20 }}>{GOALS[g].label.toUpperCase()}</T>
-              <T v="small" style={{ fontSize: 12 }}>{GOALS[g].sub}</T>
-            </Pressable>
-          );
-        })}
-      </View>
-      <NumberField label="Goal weight" unit="kg" value={p.goalWeightKg} onCommit={(goalWeightKg) => set({ goalWeightKg })} />
+      <Section title="Goal & diet">
+        <SettingRow label="Goal" value={GOALS[p.goal].label} {...row('goal')}
+          editor={<ChoiceEditor<Goal> accent={h.color} value={p.goal} options={(Object.keys(GOALS) as Goal[]).map((g) => ({ key: g, label: GOALS[g].label, sub: GOALS[g].sub }))} onPick={(goal) => set({ goal })} />} />
+        <SettingRow label="Goal weight" value={`${formatKg(p.goalWeightKg)} kg`} {...row('goalWeight')}
+          editor={<TextEditor initial={String(p.goalWeightKg)} accent={h.color} unit="kg" keyboard="decimal-pad" parse={parseNumber(30, 300)} error="30-300 kg" onCancel={close} onSave={(goalWeightKg) => set({ goalWeightKg })} />} />
+        <SettingRow label="Diet style" value={DIET_STYLES[p.dietStyle].label} hint="Changes your meal plan and macro split" last {...row('diet')}
+          editor={<ChoiceEditor<DietStyle> accent={colors.green} value={p.dietStyle} options={(Object.keys(DIET_STYLES) as DietStyle[]).map((d) => ({ key: d, label: DIET_STYLES[d].label }))} onPick={(dietStyle) => set({ dietStyle })} />} />
+      </Section>
 
-      <T v="kicker" style={{ marginTop: 6 }}>Diet style</T>
-      <Row gap={6} style={{ flexWrap: 'wrap' }}>
-        {(Object.keys(DIET_STYLES) as DietStyle[]).map((s) => (
-          <Chip key={s} label={DIET_STYLES[s].label} active={p.dietStyle === s} color={colors.green} onPress={() => set({ dietStyle: s })} />
-        ))}
-      </Row>
-
-      <Panel color={h.color} deep={h.deep}>
+      <Card>
         <Row style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
           <T v="kicker">Daily target</T>
-          <T v="display" style={{ fontSize: 34 }}>{formatInt(t.kcal)}<T v="small"> kcal</T></T>
+          <T v="h1">{formatInt(t.kcal)}<T v="small"> kcal</T></T>
         </Row>
-        <Row gap={8}>
+        <Row gap={6}>
           <Stat label="Protein" value={String(t.protein)} unit="g" color={colors.green} />
           <Stat label="Carbs" value={String(t.carbs)} unit="g" color={colors.amber} />
           <Stat label="Fat" value={String(t.fat)} unit="g" color={colors.blue} />
         </Row>
-        <T v="small">{t.formula}. Maintenance about {formatInt(t.maintenance)} kcal. {t.explain} Hard training days add up to +15% protein on top.</T>
-      </Panel>
+        <T v="small" style={{ fontSize: 11 }}>{t.formula} · maintenance ~{formatInt(t.maintenance)} kcal. {t.explain} Hard training days add up to +15% protein.</T>
+      </Card>
 
-      <T v="kicker" style={{ marginTop: 6 }}>Hero</T>
-      <Button title={`Change hero (now ${h.short})`} variant="outline" color={h.color} onPress={() => router.push('/train')} />
-      <TextField label="Your main rival's name" value={p.rivalName} onChange={(rivalName) => set({ rivalName })} placeholder="Brother" />
+      <Section title="Training">
+        <SettingRow label="Hero" value={h.name} hint="Your plan and your avatar" {...row('hero')}
+          editor={<ChoiceEditor<HeroId> accent={h.color} value={p.hero} options={HERO_IDS.map((id) => ({ key: id, label: hero(id).name, sub: hero(id).tags.join(' · ') }))}
+            onPick={(id) => (id === p.hero ? close() : confirm(`Become ${hero(id).name}?`, 'Your plan and avatar switch. History and ranks stay.', () => set({ hero: id }), 'Switch'))} />} />
+        <SettingRow label="Main rival" value={p.rivalName} hint="Shown in your duel on Home" last {...row('rival')}
+          editor={<TextEditor initial={p.rivalName} accent={h.color} parse={parseText(1, 20)} error="1 to 20 characters" onCancel={close} onSave={(rivalName) => set({ rivalName })} />} />
+      </Section>
 
-      <T v="kicker" style={{ marginTop: 6 }}>Data</T>
-      <Row gap={8}>
-        <View style={{ flex: 1 }}>
-          <Button title="Load demo" size="sm" variant="outline" color={colors.muted} onPress={() => confirm('Load demo data?', 'Replaces your workouts and diet log with 3 weeks of sample training.', actions.loadDemo, 'Load')} />
-        </View>
-        <View style={{ flex: 1 }}>
-          <Button title="Start fresh" size="sm" variant="outline" color={colors.danger} onPress={() => confirm('Start fresh?', 'Deletes all workouts and diet logs. Your profile stays.', actions.startFresh, 'Delete')} />
-        </View>
-      </Row>
+      <Section title="Data">
+        <Pressable onPress={() => confirm('Load demo data?', 'Replaces workouts and diet logs with 3 weeks of sample training.', actions.loadDemo, 'Load')} style={dataRow}>
+          <T v="body" color={colors.textDim}>Load demo data</T>
+        </Pressable>
+        <Pressable onPress={() => confirm('Start fresh?', 'Deletes all workouts and diet logs. Your profile stays.', actions.startFresh, 'Delete')} style={[dataRow, { borderBottomWidth: 0 }]}>
+          <T v="body" color={colors.danger}>Delete my workouts and logs</T>
+        </Pressable>
+      </Section>
     </Screen>
+  );
+}
+
+const dataRow = { minHeight: 44, justifyContent: 'center' as const, paddingHorizontal: 12, borderBottomWidth: 1, borderBottomColor: colors.line };
+
+function BodyCompEditor({ profile, accent, onSave, onCancel }: {
+  profile: Profile; accent: string; onSave: (b: Profile['bodyComp']) => void; onCancel: () => void;
+}) {
+  const [mode, setMode] = useState(profile.bodyComp.mode);
+  return (
+    <>
+      <ChoiceEditor<Profile['bodyComp']['mode']>
+        accent={accent}
+        value={mode}
+        onPick={(m) => (m === 'none' ? onSave({ mode: 'none' }) : setMode(m))}
+        options={[{ key: 'none', label: "Don't know" }, { key: 'bodyFat', label: 'Body fat %' }, { key: 'leanMass', label: 'Muscle / lean mass' }]}
+      />
+      {mode === 'bodyFat' ? (
+        <TextEditor key="bf" initial={profile.bodyComp.mode === 'bodyFat' ? String(profile.bodyComp.pct) : ''} placeholder="e.g. 18" accent={accent} unit="%" keyboard="decimal-pad"
+          parse={parseNumber(3, 60)} error="3-60 %" onCancel={onCancel} onSave={(pct) => onSave({ mode: 'bodyFat', pct })} />
+      ) : null}
+      {mode === 'leanMass' ? (
+        <TextEditor key="lm" initial={profile.bodyComp.mode === 'leanMass' ? String(profile.bodyComp.kg) : ''} placeholder="e.g. 80" accent={accent} unit="kg" keyboard="decimal-pad"
+          parse={parseNumber(20, profile.weightKg)} error={`20-${profile.weightKg} kg (can't exceed your weight)`} onCancel={onCancel} onSave={(kg) => onSave({ mode: 'leanMass', kg })} />
+      ) : null}
+      <T v="small" style={{ fontSize: 11 }}>From a smart scale, DEXA or InBody. With it, calories use Katch-McArdle and protein is set per kg of lean mass.</T>
+    </>
   );
 }
 
@@ -130,22 +186,21 @@ function WeightChart() {
   const goal = state.profile.goalWeightKg;
   const values = [...log.map((w) => w.kg), goal];
   const min = Math.min(...values) - 0.5, max = Math.max(...values) + 0.5;
-  const W = 320, H = 80;
-  const y = (kg: number) => H - 6 - ((kg - min) / (max - min || 1)) * (H - 12);
-  const x = (i: number) => (log.length > 1 ? 6 + (i / (log.length - 1)) * (W - 12) : W / 2);
+  const W = 320, H = 64;
+  const y = (kg: number) => H - 5 - ((kg - min) / (max - min || 1)) * (H - 10);
+  const x = (i: number) => (log.length > 1 ? 5 + (i / (log.length - 1)) * (W - 10) : W / 2);
   const delta = log.length > 1 ? log[log.length - 1].kg - log[0].kg : 0;
   return (
     <Card>
       <Row style={{ justifyContent: 'space-between' }}>
         <T v="kicker">Body weight</T>
-        <T v="title" color={delta >= 0 ? colors.green : colors.blue} style={{ fontSize: 13 }}>{delta >= 0 ? '+' : ''}{formatKg(Math.round(delta * 10) / 10)} kg</T>
+        <T v="small" color={delta >= 0 ? colors.green : colors.blue}>{delta >= 0 ? '+' : ''}{formatKg(Math.round(delta * 10) / 10)} kg · goal {formatKg(goal)} kg</T>
       </Row>
       <Svg width="100%" height={H} viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none" accessibilityLabel="Body weight chart">
         <Line x1={0} y1={y(goal)} x2={W} y2={y(goal)} stroke={colors.lineStrong} strokeDasharray="4 4" />
-        <Polyline points={log.map((w, i) => `${x(i)},${y(w.kg)}`).join(' ')} fill="none" stroke={h.color} strokeWidth={3} strokeLinejoin="round" strokeLinecap="round" />
-        {log.length ? <Circle cx={x(log.length - 1)} cy={y(log[log.length - 1].kg)} r={5} fill={h.color} /> : null}
+        <Polyline points={log.map((w, i) => `${x(i)},${y(w.kg)}`).join(' ')} fill="none" stroke={h.color} strokeWidth={2.5} strokeLinejoin="round" strokeLinecap="round" />
+        {log.length ? <Circle cx={x(log.length - 1)} cy={y(log[log.length - 1].kg)} r={4} fill={h.color} /> : null}
       </Svg>
-      <T v="small">Dashed line: goal {formatKg(goal)} kg. Change your weight above to log today.</T>
     </Card>
   );
 }

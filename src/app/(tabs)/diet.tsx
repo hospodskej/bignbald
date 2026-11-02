@@ -37,7 +37,7 @@ export default function Diet() {
           <T v="display">FUEL UP</T>
         </View>
         <Pressable onPress={() => setPickStyle((v) => !v)} accessibilityRole="button" style={{ flexDirection: 'row', alignItems: 'center', gap: 6, height: 36, paddingHorizontal: 12, borderRadius: 999, borderWidth: 1, borderColor: colors.greenLine, backgroundColor: colors.greenSoft }}>
-          <T v="title" color={colors.green} style={{ fontSize: 13 }}>{DIET_STYLES[state.profile.dietStyle].label}</T>
+          <T v="title" color={colors.green} style={{ fontSize: 12 }}>{DIET_STYLES[state.profile.dietStyle].label}</T>
           <Icon name="chevron" size={14} color={colors.green} />
         </Pressable>
       </Row>
@@ -65,7 +65,7 @@ export default function Diet() {
           </View>
         </Row>
         <Pressable onPress={() => setMore((v) => !v)} accessibilityRole="button" accessibilityState={{ expanded: more }} style={{ height: 44, borderRadius: 10, borderWidth: 1, borderStyle: 'dashed', borderColor: colors.lineStrong, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-          <T v="title" color={colors.textDim} style={{ fontSize: 14 }}>{more ? 'Hide extra nutrients' : `More nutrients (${EXTRA_NUTRIENTS.length + 1})`}</T>
+          <T v="title" color={colors.textDim} style={{ fontSize: 13 }}>{more ? 'Hide extra nutrients' : `More nutrients (${EXTRA_NUTRIENTS.length + 1})`}</T>
           <View style={{ transform: [{ rotate: more ? '180deg' : '0deg' }] }}><Icon name="chevron" size={16} color={colors.textDim} /></View>
         </Pressable>
         {more ? (
@@ -125,7 +125,7 @@ export default function Diet() {
               </View>
               <View style={{ flex: 1 }}>
                 <T v="kicker" style={{ fontSize: 10 }}>{SLOT_LABEL[slot]}</T>
-                <T v="title" style={{ fontSize: 15 }}>{r.name}</T>
+                <T v="title" style={{ fontSize: 14 }}>{r.name}</T>
                 <T v="small">{Math.round(n.kcal)} kcal · {done ? 'eaten' : 'tap when eaten'}{r.servings > 1 ? ' · meal prep' : ''}</T>
               </View>
               <View style={{ alignItems: 'flex-end' }}>
@@ -141,7 +141,7 @@ export default function Diet() {
         return (
           <Row key={item.id} gap={12} style={{ backgroundColor: colors.surface, borderRadius: 12, paddingLeft: 12, paddingVertical: 6, paddingRight: 6 }}>
             <View style={{ flex: 1 }}>
-              <T v="title" style={{ fontSize: 14 }}>{f.name}</T>
+              <T v="title" style={{ fontSize: 13 }}>{f.name}</T>
               <T v="small">{item.grams} g · {Math.round(((f.per100.kcal ?? 0) * item.grams) / 100)} kcal · {Math.round(((f.per100.protein ?? 0) * item.grams) / 100)} g protein</T>
             </View>
             <Pressable onPress={() => actions.removeFood(item.id)} accessibilityLabel={`Remove ${f.name}`} style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>

@@ -63,7 +63,7 @@ export default function Workout() {
         </View>
         <T v="title" color={colors.muted} style={{ fontVariant: ['tabular-nums'] }}>{clock}</T>
         <Pressable onPress={finish} accessibilityRole="button" style={{ height: 44, paddingHorizontal: 16, borderRadius: 12, backgroundColor: colors.green, justifyContent: 'center', marginLeft: 10 }}>
-          <T v="title" color={colors.ink} style={{ fontSize: 14 }}>Finish</T>
+          <T v="title" color={colors.ink} style={{ fontSize: 13 }}>Finish</T>
         </Pressable>
       </Row>
 
@@ -81,9 +81,9 @@ export default function Workout() {
           return (
             <Pressable key={i} onPress={() => setOpen(i)} accessibilityRole="button">
               <Row gap={10} style={{ backgroundColor: colors.surface, borderRadius: 12, paddingHorizontal: 12, minHeight: 50 }}>
-                {done ? <Icon name="check" size={18} color={colors.green} strokeWidth={3} /> : <T v="h2" color={colors.faint} style={{ fontSize: 18, width: 18 }}>{i + 1}</T>}
+                {done ? <Icon name="check" size={18} color={colors.green} strokeWidth={3} /> : <T v="h2" color={colors.faint} style={{ fontSize: 14, width: 18 }}>{i + 1}</T>}
                 <View style={{ flex: 1 }}>
-                  <T v="title" color={done ? colors.muted : colors.text} style={{ fontSize: 15 }}>{e.name}</T>
+                  <T v="title" color={done ? colors.muted : colors.text} style={{ fontSize: 14 }}>{e.name}</T>
                 </View>
                 <T v="small">{entry.sets.filter((s) => s.done).length}/{entry.sets.length} sets</T>
               </Row>
@@ -95,12 +95,12 @@ export default function Workout() {
         return (
           <Panel key={i} color={h.color} deep={h.deep} pad={14}>
             <Row gap={12} style={{ alignItems: 'flex-start' }}>
-              <LiftAnimation pose={e.pose} gear={e.gear} accent={h.color} size={104} />
+              <LiftAnimation pose={e.pose} gear={e.gear} accent={h.color} size={88} />
               <View style={{ flex: 1, gap: 6 }}>
                 <Row style={{ justifyContent: 'space-between' }}>
                   <T v="kicker" style={{ flex: 1 }}>{i + 1} of {session.entries.length}{slot.any ? ` · any ${FAMILIES[slot.family].toLowerCase()}` : ''}</T>
                 </Row>
-                <T v="h2" style={{ fontSize: 26, lineHeight: 26 }}>{e.name.toUpperCase()}</T>
+                <T v="h2" style={{ fontSize: 21, lineHeight: 21 }}>{e.name.toUpperCase()}</T>
                 <RankPill rank={rankOf(state.history, e.id)} />
                 <Pressable
                   accessibilityRole="button"
@@ -132,18 +132,18 @@ export default function Workout() {
             <Row gap={8}>
               <T v="kicker" style={{ width: 30, fontSize: 10 }}>Set</T>
               <T v="kicker" style={{ flex: 1, fontSize: 10 }}>Last</T>
-              <T v="kicker" style={{ width: 72, fontSize: 10 }}>{e.perSide ? 'Kg each' : 'Kg'}</T>
-              <T v="kicker" style={{ width: 58, fontSize: 10 }}>Reps</T>
+              <T v="kicker" style={{ width: 64, fontSize: 10 }}>{e.perSide ? 'Kg each' : 'Kg'}</T>
+              <T v="kicker" style={{ width: 52, fontSize: 10 }}>Reps</T>
               <View style={{ width: 44 }} />
             </Row>
             {entry.sets.map((s, si) => {
               const prev = last[si];
               return (
                 <Row key={si} gap={8} style={{ backgroundColor: s.done ? '#13261D' : 'transparent', borderRadius: 10, paddingVertical: 3 }}>
-                  <T v="h2" style={{ width: 30, textAlign: 'center', fontSize: 20 }}>{si + 1}</T>
+                  <T v="h2" style={{ width: 30, textAlign: 'center', fontSize: 16 }}>{si + 1}</T>
                   <T v="small" style={{ flex: 1 }}>{prev ? `${formatKg(parseFloat(prev.kg))} × ${prev.reps}` : '—'}</T>
-                  <SetInput label={`Set ${si + 1} weight`} value={s.kg} onChange={(kg) => actions.updateSet(i, si, { kg })} width={72} decimal />
-                  <SetInput label={`Set ${si + 1} reps`} value={s.reps} placeholder={`${MIN_REPS}+`} onChange={(reps) => actions.updateSet(i, si, { reps })} width={58} highlight={!s.done && si === entry.sets.findIndex((x) => !x.done) ? h.color : undefined} />
+                  <SetInput label={`Set ${si + 1} weight`} value={s.kg} onChange={(kg) => actions.updateSet(i, si, { kg })} width={64} decimal />
+                  <SetInput label={`Set ${si + 1} reps`} value={s.reps} placeholder={`${MIN_REPS}+`} onChange={(reps) => actions.updateSet(i, si, { reps })} width={52} highlight={!s.done && si === entry.sets.findIndex((x) => !x.done) ? h.color : undefined} />
                   <Pressable
                     accessibilityRole="checkbox"
                     accessibilityState={{ checked: s.done }}
@@ -152,7 +152,7 @@ export default function Workout() {
                       if (!s.done && Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => {});
                       actions.updateSet(i, si, { done: !s.done, reps: !s.done && !s.reps && prev ? prev.reps : s.reps });
                     }}
-                    style={{ width: 44, height: 40, borderRadius: 10, borderWidth: 1, borderColor: s.done ? colors.green : colors.lineStrong, backgroundColor: s.done ? colors.green : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
+                    style={{ width: 40, height: 36, borderRadius: 9, borderWidth: 1, borderColor: s.done ? colors.green : colors.lineStrong, backgroundColor: s.done ? colors.green : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                     <Icon name="check" size={18} color={s.done ? colors.ink : colors.faint} strokeWidth={3} />
                   </Pressable>
                 </Row>
@@ -191,8 +191,8 @@ function SetInput({ label, value, onChange, width, placeholder, decimal, highlig
       keyboardType={decimal ? 'decimal-pad' : 'number-pad'}
       selectTextOnFocus
       style={{
-        width, height: 40, borderRadius: 10, borderWidth: 1, borderColor: highlight ?? colors.lineStrong, backgroundColor: colors.surfaceSunk,
-        color: colors.text, textAlign: 'center', fontFamily: fonts.bold, fontSize: 16,
+        width, height: 36, borderRadius: 9, borderWidth: 1, borderColor: highlight ?? colors.lineStrong, backgroundColor: colors.surfaceSunk,
+        color: colors.text, textAlign: 'center', fontFamily: fonts.bold, fontSize: 13,
       }}
     />
   );

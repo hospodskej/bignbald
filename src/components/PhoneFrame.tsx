@@ -21,8 +21,8 @@ export function PhoneFrame({ children }: { children: ReactNode }) {
       <Halftone color="#FF4D3D" opacity={0.08} gap={14} dot={1.4} />
       {width > 1000 ? (
         <View style={{ maxWidth: 300, gap: 10 }}>
-          <Text style={{ fontFamily: fonts.display, fontSize: 64, lineHeight: 60, color: colors.text }}>BIG N{'\n'}BALD</Text>
-          <Text style={{ fontFamily: fonts.medium, fontSize: 15, lineHeight: 22, color: colors.muted }}>
+          <Text style={{ fontFamily: fonts.display, fontSize: 51, lineHeight: 48, color: colors.text }}>BIG N{'\n'}BALD</Text>
+          <Text style={{ fontFamily: fonts.medium, fontSize: 14, lineHeight: 18, color: colors.muted }}>
             Train like a hero. Rank up every lift. Eat for the work you did today.
           </Text>
         </View>

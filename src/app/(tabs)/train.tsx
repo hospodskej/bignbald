@@ -34,7 +34,7 @@ export default function Train() {
       <Panel color={h.color} deep={h.deep}>
         <Halftone color={h.color} opacity={0.25} style={{ left: '55%', bottom: '60%' }} />
         <Row gap={12}>
-          <HeroBadge id={mine} size={56} />
+          <HeroBadge id={mine} size={45} />
           <View style={{ flex: 1 }}>
             <T v="h1" color={h.bright}>{h.name.toUpperCase()}</T>
             <T v="small">{plan.schedule === 'rotation' ? 'Rotation · rest when you need it' : `${plan.days.length}-day split`} · {plan.minPerWeek}+ per week</T>
@@ -61,7 +61,7 @@ export default function Train() {
                       <T v="kicker" color={colors.ink}>Next</T>
                     </View>
                   ) : null}
-                  <BodyMap heat={dayHeat(state, mine, d.id)} height={56} />
+                  <BodyMap heat={dayHeat(state, mine, d.id)} height={48} />
                 </Row>
               </Pressable>
             );
@@ -82,19 +82,24 @@ export default function Train() {
       {HERO_IDS.filter((id) => id !== mine).map((id) => {
         const o = hero(id);
         return (
-          <Pressable key={id} onPress={() => router.push({ pathname: '/plan/[hero]', params: { hero: id } })} accessibilityRole="button">
-            <Card>
-              <Row gap={12}>
-                <HeroBadge id={id} size={48} />
-                <View style={{ flex: 1 }}>
-                  <T v="h2" color={o.bright}>{o.name.toUpperCase()}</T>
-                  <T v="small">{o.tags.join(' · ')}</T>
-                </View>
-                <Button title="Switch" size="sm" variant="outline" color={o.color} onPress={() => switchTo(id)} />
-              </Row>
-              <T v="small" color={colors.textDim}>{o.tagline}</T>
-            </Card>
-          </Pressable>
+          <Card key={id}>
+            <Row gap={12}>
+              <HeroBadge id={id} size={38} />
+              <View style={{ flex: 1 }}>
+                <T v="h2" color={o.bright}>{o.name.toUpperCase()}</T>
+                <T v="small">{o.tags.join(' · ')}</T>
+              </View>
+            </Row>
+            <T v="small" color={colors.textDim}>{o.tagline}</T>
+            <Row gap={8}>
+              <View style={{ flex: 1 }}>
+                <Button title="See plan" size="sm" variant="outline" color={colors.muted} onPress={() => router.push({ pathname: '/plan/[hero]', params: { hero: id } })} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Button title="Switch" size="sm" color={o.color} onPress={() => switchTo(id)} />
+              </View>
+            </Row>
+          </Card>
         );
       })}
       <Card style={{ borderStyle: 'dashed' }}>

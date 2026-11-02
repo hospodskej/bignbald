@@ -44,16 +44,16 @@ export default function Home() {
   return (
     <Screen>
       <Row gap={12}>
-        <HeroBadge id={state.profile.hero} size={52} level={lvl.level} />
+        <HeroBadge id={state.profile.hero} size={42} level={lvl.level} />
         <View style={{ flex: 1 }}>
           <T v="small">{greeting()}, {state.profile.name}</T>
-          <T v="title" color={h.bright} style={{ fontSize: 13 }}>
+          <T v="title" color={h.bright} style={{ fontSize: 12 }}>
             {h.short} · Level {lvl.level} · {lvl.need - lvl.xp} XP to go
           </T>
         </View>
         <Row gap={5} style={{ backgroundColor: h.soft, borderColor: h.deep, borderWidth: 1, borderRadius: 999, paddingHorizontal: 11, paddingVertical: 7 }}>
           <Icon name="flame" size={16} color={h.bright} />
-          <T v="title" style={{ fontSize: 14 }}>{weekStreak(state.history)} wk</T>
+          <T v="title" style={{ fontSize: 13 }}>{weekStreak(state.history)} wk</T>
         </Row>
       </Row>
 
@@ -69,20 +69,20 @@ export default function Home() {
         </Pressable>
       ) : null}
 
-      <Panel color={h.color} deep={h.deep} bg="#1A0F11" pad={18}>
+      <Panel color={h.color} deep={h.deep} bg="#1A0F11" pad={14}>
         <Halftone color={h.color} opacity={0.3} gap={9} style={{ left: '45%', bottom: '45%' }} />
         <Row style={{ alignItems: 'flex-start' }} gap={10}>
           <View style={{ flex: 1, gap: 8 }}>
             <View style={{ alignSelf: 'flex-start', backgroundColor: h.color, paddingHorizontal: 8, paddingVertical: 3, transform: [{ skewX: '-10deg' }] }}>
               <T v="kicker" color={colors.ink} style={{ transform: [{ skewX: '10deg' }] }}>{h.name} · Day {dayNo}</T>
             </View>
-            <T v="display" style={{ fontSize: 46, lineHeight: 44, marginTop: 4 }}>{day.name.toUpperCase().replace(' + ', '\n+ ')}</T>
+            <T v="display" style={{ fontSize: 37, lineHeight: 35, marginTop: 4 }}>{day.name.toUpperCase().replace(' + ', '\n+ ')}</T>
             <T v="small" color={colors.textDim}>{day.slots.length} exercises · {sets} sets · ~{Math.round(sets * 3)} min</T>
           </View>
-          <BodyMap heat={dayHeat(state, state.profile.hero, dayId)} height={150} />
+          <BodyMap heat={dayHeat(state, state.profile.hero, dayId)} height={128} />
         </Row>
         <View style={{ alignSelf: 'flex-start', maxWidth: 280, backgroundColor: colors.text, borderRadius: 14, paddingHorizontal: 14, paddingVertical: 10 }}>
-          <T v="title" color={colors.ink} style={{ fontSize: 14 }}>{coach}</T>
+          <T v="title" color={colors.ink} style={{ fontSize: 13 }}>{coach}</T>
           <View style={{ position: 'absolute', left: 22, bottom: -7, width: 14, height: 14, backgroundColor: colors.text, transform: [{ rotate: '45deg' }] }} />
         </View>
         <Button title={state.active ? 'Resume workout' : "Let's go"} size="lg" color={h.color} onPress={start} />
@@ -124,7 +124,7 @@ export default function Home() {
         {upgrade?.s?.kind === 'upgrade' ? (
           <Card style={{ flex: 1 }} tone={{ bg: colors.amberSoft, line: colors.amberLine }}>
             <T v="kicker" color={colors.amber}>Upgrade ready</T>
-            <T v="title" style={{ fontSize: 15 }}>{exercise(upgrade.id).name}</T>
+            <T v="title" style={{ fontSize: 14 }}>{exercise(upgrade.id).name}</T>
             <T v="h2" color={colors.amber}>{formatKg(upgrade.s.fromKg)} → {formatKg(upgrade.s.toKg)} kg</T>
             <T v="small">12+ reps twice in a row</T>
           </Card>
@@ -132,7 +132,7 @@ export default function Home() {
           <Pressable style={{ flex: 1 }} onPress={() => router.push('/rankings')}>
             <Card style={{ flex: 1 }}>
               <T v="kicker">Top rank</T>
-              <T v="title" style={{ fontSize: 15 }}>{exercise(top.id).name}</T>
+              <T v="title" style={{ fontSize: 14 }}>{exercise(top.id).name}</T>
               <RankPill rank={top.rank} />
               <T v="small">Best {formatKg(top.kg)} kg</T>
             </Card>

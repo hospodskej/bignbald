@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { Animated, Easing, View } from 'react-native';
+import { Animated, Easing, Platform, View } from 'react-native';
 
 import { RankEmblem } from '@/components/Rank';
 import { Button, Card, Row, Screen, Stat, T } from '@/components/ui';
@@ -26,8 +26,8 @@ export default function RankUp() {
   const [fall] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
-    Animated.spring(pop, { toValue: 1, friction: 5, tension: 60, useNativeDriver: true }).start();
-    Animated.timing(fall, { toValue: 1, duration: 2600, easing: Easing.out(Easing.quad), useNativeDriver: true }).start();
+    Animated.spring(pop, { toValue: 1, friction: 5, tension: 60, useNativeDriver: Platform.OS !== 'web' }).start();
+    Animated.timing(fall, { toValue: 1, duration: 2600, easing: Easing.out(Easing.quad), useNativeDriver: Platform.OS !== 'web' }).start();
   }, [pop, fall]);
 
   const accent = main?.color ?? h.color;
@@ -53,13 +53,13 @@ export default function RankUp() {
       </View>
 
       <View style={{ alignItems: 'center', gap: 10, marginTop: 20 }}>
-        <T v="kicker" color={accent} style={{ letterSpacing: 4, fontSize: 13 }}>{main ? 'Rank up' : 'Workout complete'}</T>
+        <T v="kicker" color={accent} style={{ letterSpacing: 4, fontSize: 12 }}>{main ? 'Rank up' : 'Workout complete'}</T>
         <Animated.View style={{ transform: [{ scale: pop.interpolate({ inputRange: [0, 1], outputRange: [0.3, 1] }) }], opacity: pop }}>
           <RankEmblem color={accent} division={main ? main.to.split(' ')[1] ?? '' : ''} size={200} />
         </Animated.View>
         {main ? (
           <>
-            <T v="display" color={accent} style={{ fontSize: 46, lineHeight: 46, textAlign: 'center' }}>{main.to.toUpperCase()}</T>
+            <T v="display" color={accent} style={{ fontSize: 37, lineHeight: 37, textAlign: 'center' }}>{main.to.toUpperCase()}</T>
             <T v="title">{exercise(main.exerciseId).name}</T>
             <Row gap={10}>
               <T v="h2" color={colors.muted}>{main.from.toUpperCase()}</T>
@@ -96,7 +96,7 @@ export default function RankUp() {
           {ups.slice(1).map((u) => (
             <Row key={u.exerciseId} style={{ justifyContent: 'space-between' }}>
               <T v="body" style={{ flex: 1 }}>{exercise(u.exerciseId).name}</T>
-              <T v="h2" color={u.color} style={{ fontSize: 18 }}>{u.to.toUpperCase()}</T>
+              <T v="h2" color={u.color} style={{ fontSize: 14 }}>{u.to.toUpperCase()}</T>
             </Row>
           ))}
         </Card>

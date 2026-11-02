@@ -4,6 +4,13 @@ import type { DietStyle, MealSlot } from '@/data/recipes';
 export type Goal = 'bigger' | 'leaner' | 'lose' | 'maintain';
 export type Sex = 'male' | 'female';
 
+export interface Account {
+  /** guest = local only. registered = signed up (sync arrives with the server). */
+  status: 'guest' | 'registered';
+  username: string;
+  email: string;
+}
+
 export interface Profile {
   name: string;
   hero: HeroId;
@@ -60,6 +67,7 @@ export interface RankUp {
 
 export interface AppState {
   version: 1;
+  account?: Account;
   profile: Profile;
   weightLog: { date: string; kg: number }[];
   history: Session[];

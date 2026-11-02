@@ -20,14 +20,14 @@ import { Icon } from './Icon';
 // ---------- Text ----------
 
 const textStyles = StyleSheet.create({
-  display: { fontFamily: fonts.display, fontSize: 40, lineHeight: 40, color: colors.text, letterSpacing: 0.3 },
-  h1: { fontFamily: fonts.display, fontSize: 32, lineHeight: 34, color: colors.text, letterSpacing: 0.3 },
-  h2: { fontFamily: fonts.display, fontSize: 24, lineHeight: 26, color: colors.text, letterSpacing: 0.3 },
-  num: { fontFamily: fonts.display, fontSize: 22, color: colors.text },
-  title: { fontFamily: fonts.semibold, fontSize: 16, color: colors.text },
-  body: { fontFamily: fonts.body, fontSize: 15, lineHeight: 21, color: colors.text },
-  small: { fontFamily: fonts.medium, fontSize: 13, lineHeight: 18, color: colors.muted },
-  kicker: { fontFamily: fonts.black, fontSize: 11, letterSpacing: 1.6, color: colors.muted, textTransform: 'uppercase' },
+  display: { fontFamily: fonts.display, fontSize: 32, lineHeight: 33, color: colors.text, letterSpacing: 0.3 },
+  h1: { fontFamily: fonts.display, fontSize: 19, lineHeight: 21, color: colors.text, letterSpacing: 0.3 },
+  h2: { fontFamily: fonts.display, fontSize: 19, lineHeight: 21, color: colors.text, letterSpacing: 0.3 },
+  num: { fontFamily: fonts.display, fontSize: 18, color: colors.text },
+  title: { fontFamily: fonts.semibold, fontSize: 14, color: colors.text },
+  body: { fontFamily: fonts.body, fontSize: 14, lineHeight: 19, color: colors.text },
+  small: { fontFamily: fonts.medium, fontSize: 12, lineHeight: 16, color: colors.muted },
+  kicker: { fontFamily: fonts.black, fontSize: 10, letterSpacing: 1.4, color: colors.muted, textTransform: 'uppercase' },
 });
 
 type Variant = keyof typeof textStyles;
@@ -39,7 +39,7 @@ export function T({ v = 'body', color, style, ...rest }: TextProps & { v?: Varia
 
 export function Screen({ children, scroll = true, padTop = true }: { children: ReactNode; scroll?: boolean; padTop?: boolean }) {
   const insets = useSafeAreaInsets();
-  const pad = { paddingTop: padTop ? insets.top + 8 : 16, paddingHorizontal: space.lg, paddingBottom: insets.bottom + 24, gap: 14 };
+  const pad = { paddingTop: padTop ? insets.top + 8 : 16, paddingHorizontal: space.lg, paddingBottom: insets.bottom + 20, gap: 10 };
   if (!scroll) return <View style={[{ flex: 1, backgroundColor: colors.bg }, pad]}>{children}</View>;
   return (
     <ScrollView style={{ flex: 1, backgroundColor: colors.bg }} contentContainerStyle={pad} keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
@@ -75,13 +75,13 @@ export function Card({ children, style, tone }: { children: ReactNode; style?: S
 }
 
 /** Comic panel: bold border and a hard offset shadow. */
-export function Panel({ children, color, deep, bg = colors.surface, style, pad = 16 }: {
+export function Panel({ children, color, deep, bg = colors.surface, style, pad = 12 }: {
   children: ReactNode; color: string; deep: string; bg?: string; style?: StyleProp<ViewStyle>; pad?: number;
 }) {
   return (
     <View style={[{ marginRight: 6, marginBottom: 6 }, style]}>
       <View style={[StyleSheet.absoluteFill, { top: 6, left: 6, right: -6, bottom: -6, backgroundColor: deep, borderRadius: 10 }]} />
-      <View style={{ backgroundColor: bg, borderColor: color, borderWidth: 2, borderRadius: 10, padding: pad, gap: 12, overflow: 'hidden' }}>
+      <View style={{ backgroundColor: bg, borderColor: color, borderWidth: 2, borderRadius: 10, padding: pad, gap: 10, overflow: 'hidden' }}>
         {children}
       </View>
     </View>
@@ -111,8 +111,8 @@ export function Button({ title, onPress, color = colors.text, textColor = colors
   title: string; onPress: () => void; color?: string; textColor?: string; variant?: 'solid' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg'; disabled?: boolean; icon?: Parameters<typeof Icon>[0]['name'];
 }) {
-  const h = size === 'lg' ? 58 : size === 'md' ? 48 : 38;
-  const fs = size === 'lg' ? 26 : size === 'md' ? 20 : 16;
+  const h = size === 'lg' ? 46 : size === 'md' ? 40 : 32;
+  const fs = size === 'lg' ? 20 : size === 'md' ? 17 : 14;
   const solid = variant === 'solid';
   return (
     <Pressable
@@ -145,10 +145,10 @@ export function IconButton({ icon, label, onPress, color = colors.text, filled }
       onPress={onPress}
       hitSlop={4}
       style={({ pressed }) => ({
-        width: 44, height: 44, borderRadius: radius.md, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1,
+        width: 36, height: 36, borderRadius: radius.sm, alignItems: 'center', justifyContent: 'center', opacity: pressed ? 0.7 : 1,
         backgroundColor: filled ?? colors.surface, borderWidth: filled ? 0 : 1, borderColor: colors.line,
       })}>
-      <Icon name={icon} size={20} color={color} />
+      <Icon name={icon} size={17} color={color} />
     </Pressable>
   );
 }
@@ -162,11 +162,11 @@ export function Chip({ label, active, onPress, color = colors.text, activeText =
       accessibilityState={{ selected: active }}
       onPress={onPress}
       style={{
-        minHeight: 36, paddingHorizontal: 14, justifyContent: 'center', borderRadius: active ? 4 : radius.pill,
+        minHeight: 30, paddingHorizontal: 11, justifyContent: 'center', borderRadius: active ? 4 : radius.pill,
         backgroundColor: active ? color : colors.surface, borderWidth: active ? 0 : 1, borderColor: colors.line,
         transform: active ? [{ skewX: '-8deg' }] : [],
       }}>
-      <Text style={{ fontFamily: active ? fonts.black : fonts.semibold, fontSize: 13, color: active ? activeText : colors.text, transform: active ? [{ skewX: '8deg' }] : [] }}>
+      <Text style={{ fontFamily: active ? fonts.black : fonts.semibold, fontSize: 12, color: active ? activeText : colors.text, transform: active ? [{ skewX: '8deg' }] : [] }}>
         {active ? label.toUpperCase() : label}
       </Text>
     </Pressable>
@@ -185,7 +185,7 @@ export function Stat({ label, value, unit, color = colors.text, style }: { label
   return (
     <View style={[styles.stat, style]}>
       <T v="kicker" style={{ fontSize: 10 }}>{label}</T>
-      <Text style={{ fontFamily: fonts.display, fontSize: 22, color }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 18, color }}>
         {value}
         {unit ? <Text style={{ fontFamily: fonts.medium, fontSize: 12, color: colors.muted }}> {unit}</Text> : null}
       </Text>
@@ -197,7 +197,7 @@ export function Banner({ icon, title, body, tone, action }: {
   icon: Parameters<typeof Icon>[0]['name']; title: string; body: string; tone: { bg: string; line: string; fg: string }; action?: ReactNode;
 }) {
   return (
-    <View style={{ backgroundColor: tone.bg, borderColor: tone.line, borderWidth: 1, borderRadius: radius.md, padding: 12, gap: 10 }}>
+    <View style={{ backgroundColor: tone.bg, borderColor: tone.line, borderWidth: 1, borderRadius: radius.md, padding: 10, gap: 8 }}>
       <Row gap={10} style={{ alignItems: 'flex-start' }}>
         <Icon name={icon} size={20} color={tone.fg} />
         <View style={{ flex: 1, gap: 2 }}>
@@ -216,8 +216,8 @@ export const tones = {
 };
 
 export const styles = StyleSheet.create({
-  card: { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, padding: 14, gap: 10 },
-  stat: { flex: 1, backgroundColor: colors.surfaceSunk, borderRadius: radius.md, padding: 10, gap: 2 },
+  card: { backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: radius.lg, padding: 12, gap: 8 },
+  stat: { flex: 1, backgroundColor: colors.surfaceSunk, borderRadius: radius.md, padding: 8, gap: 1 },
 });
 
 export { textStyles };

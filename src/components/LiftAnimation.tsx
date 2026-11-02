@@ -230,8 +230,8 @@ function Weight({ gear, at, pose, accent }: { gear: GearId; at: Pt; pose: PoseId
   const far = add(at, [13, -7]);
   const plate = (p: Pt, s: number) => (
     <G>
-      <Ellipse cx={p[0]} cy={p[1]} rx={4 * s} ry={13 * s} fill={PAD} stroke={accent} strokeWidth={2} rotation={-28} origin={`${p[0]}, ${p[1]}`} />
-      <Ellipse cx={p[0]} cy={p[1]} rx={1.5 * s} ry={4 * s} fill={METAL} rotation={-28} origin={`${p[0]}, ${p[1]}`} />
+      <Ellipse cx={p[0]} cy={p[1]} rx={4 * s} ry={13 * s} fill={PAD} stroke={accent} strokeWidth={2} transform={`rotate(${-28} ${p[0]} ${p[1]})`} />
+      <Ellipse cx={p[0]} cy={p[1]} rx={1.5 * s} ry={4 * s} fill={METAL} transform={`rotate(${-28} ${p[0]} ${p[1]})`} />
     </G>
   );
   if (gear === 'dumbbell') {
@@ -239,7 +239,7 @@ function Weight({ gear, at, pose, accent }: { gear: GearId; at: Pt; pose: PoseId
     return (
       <G>
         <Line x1={a[0]} y1={a[1]} x2={b[0]} y2={b[1]} stroke={METAL} strokeWidth={3} />
-        {[a, b].map((p, i) => <Ellipse key={i} cx={p[0]} cy={p[1]} rx={3.5} ry={6.5} fill={PAD} stroke={accent} strokeWidth={1.6} rotation={-28} origin={`${p[0]}, ${p[1]}`} />)}
+        {[a, b].map((p, i) => <Ellipse key={i} cx={p[0]} cy={p[1]} rx={3.5} ry={6.5} fill={PAD} stroke={accent} strokeWidth={1.6} transform={`rotate(${-28} ${p[0]} ${p[1]})`} />)}
       </G>
     );
   }
@@ -308,7 +308,7 @@ function Figure({ j, work, accent, far }: { j: Joints; work: Seg[]; accent: stri
       <Path d={limb(j.heel, j.toe, 3.2, 2.4)} fill={SKIN} />
       <Path d={torso} fill={c('torso')} />
       <Path d={limb(j.sh, neckTop, 4.6, 4.2)} fill={SKIN} />
-      <Ellipse cx={j.head[0]} cy={j.head[1]} rx={9.6} ry={11} fill={SKIN} rotation={j.t * 0.6} origin={`${j.head[0]}, ${j.head[1]}`} />
+      <Ellipse cx={j.head[0]} cy={j.head[1]} rx={9.6} ry={11} fill={SKIN} transform={`rotate(${j.t * 0.6} ${j.head[0]} ${j.head[1]})`} />
       <Circle cx={j.sh[0]} cy={j.sh[1] + 1} r={7} fill={c('shoulder')} />
       <Path d={limb(j.sh, j.el, 6.2, 4.4)} fill={c('upperArm')} />
       <Path d={limb(j.el, j.wr, 4.6, 3)} fill={c('forearm')} />

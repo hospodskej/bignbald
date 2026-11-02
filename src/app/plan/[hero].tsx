@@ -38,7 +38,7 @@ export default function PlanScreen() {
 
       <Card style={{ alignItems: 'center', backgroundColor: '#12151C', overflow: 'hidden' }}>
         <Halftone color={h.color} opacity={0.1} gap={10} />
-        <BodyMap heat={heat} height={280} interactive />
+        <BodyMap heat={heat} height={238} interactive />
         <HeatLegend />
         <T v="small" color={colors.textDim}>Hits most: {topMuscles(heat).join(', ')}</T>
       </Card>
@@ -51,7 +51,7 @@ export default function PlanScreen() {
           <Row key={i} gap={12} style={{ backgroundColor: colors.surface, borderColor: colors.line, borderWidth: 1, borderRadius: 12, paddingLeft: 14, paddingVertical: 6, paddingRight: 6 }}>
             <T v="h2" color={colors.faint} style={{ width: 16 }}>{i + 1}</T>
             <View style={{ flex: 1, gap: 3 }}>
-              <T v="title" style={{ fontSize: 15 }}>{e.name}</T>
+              <T v="title" style={{ fontSize: 14 }}>{e.name}</T>
               <Row gap={6} style={{ flexWrap: 'wrap' }}>
                 <T v="small">{slot.any ? `Any ${FAMILIES[slot.family].toLowerCase()} · ` : ''}{slot.sets} sets{last ? ` · last ${formatKg(parseFloat(last.kg))} kg × ${last.reps}` : ''}</T>
               </Row>

@@ -6,10 +6,12 @@ import type { MealSlot } from '@/data/recipes';
 import { dayKey } from './dates';
 import { generateMealPlan } from './nutrition';
 import { demoState, emptyState } from './seed';
-import type { AppState, LoggedSet, Profile } from './types';
+import type { Account, AppState, LoggedSet, Profile } from './types';
 import { newSession, prefill, rankUps, uid } from './workout';
 
 const KEY = 'bignbald:v1';
+
+export const accountOf = (s: AppState): Account => s.account ?? { status: 'guest', username: '', email: '' };
 
 function useActions(set: (fn: (s: AppState) => AppState) => void) {
   return useMemo(() => {
@@ -25,6 +27,8 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
           const mealPlan = patch.dietStyle && patch.dietStyle !== s.profile.dietStyle ? generateMealPlan(patch.dietStyle) : s.mealPlan;
           return { ...s, profile, mealPlan };
         }),
+      updateAccount: (patch: Partial<Account>) =>
+        set((s) => ({ ...s, account: { ...accountOf(s), ...patch } })),
       logWeight: (kg: number) =>
         set((s) => ({
           ...s,

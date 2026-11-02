@@ -40,7 +40,7 @@ export default function Groceries() {
                 <Pressable key={slot} onPress={() => cycle(day, slot)} accessibilityRole="button" accessibilityLabel={`${d} ${SLOT_LABEL[slot]}`}
                   style={{ minHeight: 64, backgroundColor: colors.surface, borderRadius: 10, borderWidth: 1, borderColor: day === today ? colors.greenLine : colors.line, padding: 8, gap: 2 }}>
                   <T v="kicker" style={{ fontSize: 9 }}>{SLOT_LABEL[slot]}</T>
-                  <T v="small" color={colors.text} numberOfLines={3} style={{ fontSize: 12, lineHeight: 15 }}>{id ? recipe(id).name : '—'}</T>
+                  <T v="small" color={colors.text} numberOfLines={3} style={{ fontSize: 12, lineHeight: 14 }}>{id ? recipe(id).name : '—'}</T>
                 </Pressable>
               );
             })}
@@ -53,10 +53,10 @@ export default function Groceries() {
         {prep.map((p) => (
           <Row key={p.recipe.id} gap={10} style={{ alignItems: 'flex-start' }}>
             <View style={{ backgroundColor: colors.greenSoft, borderColor: colors.greenLine, borderWidth: 1, borderRadius: 8, paddingHorizontal: 8, paddingVertical: 2 }}>
-              <T v="h2" color={colors.green} style={{ fontSize: 18 }}>×{p.batches}</T>
+              <T v="h2" color={colors.green} style={{ fontSize: 14 }}>×{p.batches}</T>
             </View>
             <View style={{ flex: 1 }}>
-              <T v="title" style={{ fontSize: 14 }}>{p.recipe.name}</T>
+              <T v="title" style={{ fontSize: 13 }}>{p.recipe.name}</T>
               <T v="small">{p.servings} servings this week · batch makes {p.recipe.servings}. {p.recipe.steps}</T>
             </View>
           </Row>
@@ -79,7 +79,7 @@ export default function Groceries() {
                     {on ? <Icon name="check" size={13} color={colors.ink} strokeWidth={3.5} /> : null}
                   </View>
                   <T v="body" color={on ? colors.faint : colors.text} style={{ flex: 1, textDecorationLine: on ? 'line-through' : 'none' }}>{i.name}</T>
-                  <T v="title" color={colors.muted} style={{ fontSize: 14 }}>{i.label}</T>
+                  <T v="title" color={colors.muted} style={{ fontSize: 13 }}>{i.label}</T>
                 </Row>
               </Pressable>
             );
