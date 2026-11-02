@@ -2,27 +2,13 @@ import { useEffect, useRef } from 'react';
 
 import { api, ApiError, setApiToken } from './api';
 import { accountOf, useStore } from './store';
-import type { Session } from './types';
-import { setKg, setReps } from './workout';
-
-/** The app's session -> the API's workout shape (numbers instead of the text the inputs hold). */
-const toUpload = (s: Session) => ({
-  id: s.id,
-  hero: s.hero,
-  dayId: s.dayId,
-  startedAt: s.startedAt,
-  finishedAt: s.finishedAt ?? s.startedAt,
-  entries: s.entries.map((e) => ({
-    slot: e.slot,
-    exerciseId: e.exerciseId,
-    sets: e.sets.map((x) => ({ kg: setKg(x), reps: setReps(x), done: x.done })),
-  })),
-});
+import type { OutboxItem } from './types';
 
 /**
- * Keeps the server in step with what happens on the phone:
- * finished workouts, profile edits and body weight. Works offline too:
- * unsent workouts wait in a queue and go up when the server is reachable.
+ * Sends the outbox (lib/outbox.ts) to the server, oldest first, one at a time.
+ * - Offline / server down: stop and try again in 30 s. Nothing is lost.
+ * - Login expired (401): sign out; the auth screen takes over.
+ * - Rejected (other 4xx): drop that item so it can't block the queue forever.
  */
 export function useServerSync() {
   const { state, actions } = useStore();
@@ -30,62 +16,45 @@ export function useServerSync() {
   const signedIn = account.status === 'registered' && Boolean(account.token);
   setApiToken(signedIn ? account.token! : null);
 
-  // Workouts: upload the queue, retry every 30 s while anything is waiting.
-  const pending = (state.pendingUploads ?? []).join(',');
+  // Always the latest queue, without restarting the sender on every change.
+  const outbox = state.outbox ?? [];
+  const queue = useRef<OutboxItem[]>(outbox);
   useEffect(() => {
-    if (!signedIn || !pending) return;
-    let stop = false;
+    queue.current = outbox;
+  });
+  const sending = useRef(false);
+  const hasWork = outbox.length > 0;
+
+  useEffect(() => {
+    if (!signedIn || !hasWork) return;
+    let stopped = false;
     const flush = async () => {
-      for (const id of pending.split(',')) {
-        const session = state.history.find((s) => s.id === id);
-        if (!session) {
-          actions.markUploaded(id);
-          continue;
+      if (sending.current) return;
+      sending.current = true;
+      const done = new Set<string>();
+      try {
+        while (!stopped) {
+          const item = queue.current.find((x) => !done.has(x.id));
+          if (!item) return;
+          try {
+            await api(item.method, item.path, item.body);
+          } catch (e) {
+            if (!(e instanceof ApiError) || e.offline || e.status >= 500) return; // try again later
+            if (e.status === 401) return actions.signOut();
+            console.warn(`Server rejected ${item.method} ${item.path}: ${e.message}`);
+          }
+          done.add(item.id);
+          actions.markSent(item.id);
         }
-        try {
-          await api('POST', '/account/workouts', toUpload(session));
-          actions.markUploaded(id);
-        } catch (e) {
-          if (e instanceof ApiError && e.status === 401) return actions.signOut();
-          // Rejected by the server (e.g. failed validation): don't retry forever.
-          if (e instanceof ApiError && e.status >= 400 && e.status < 500) actions.markUploaded(id);
-          else return; // offline: try again later
-        }
-        if (stop) return;
+      } finally {
+        sending.current = false;
       }
     };
     flush();
-    const t = setInterval(flush, 30_000);
+    const timer = setInterval(flush, 30_000);
     return () => {
-      stop = true;
-      clearInterval(t);
+      stopped = true;
+      clearInterval(timer);
     };
-    // state.history is read inside; the queue string is what should trigger a run.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn, pending]);
-
-  // Profile: push edits after a short pause.
-  const profileJson = JSON.stringify(state.profile);
-  const lastProfile = useRef(profileJson);
-  useEffect(() => {
-    if (!signedIn || profileJson === lastProfile.current) return;
-    const t = setTimeout(() => {
-      api('PUT', '/account/profile', { profile: JSON.parse(profileJson) })
-        .then(() => (lastProfile.current = profileJson))
-        .catch(() => {});
-    }, 800);
-    return () => clearTimeout(t);
-  }, [signedIn, profileJson]);
-
-  // Body weight: send the newest entry when it changes.
-  const latest = [...state.weightLog].sort((a, b) => a.date.localeCompare(b.date)).at(-1);
-  const latestKey = latest ? `${latest.date}:${latest.kg}` : '';
-  const lastWeight = useRef(latestKey);
-  useEffect(() => {
-    if (!signedIn || !latest || latestKey === lastWeight.current) return;
-    api('PUT', '/account/weights', latest)
-      .then(() => (lastWeight.current = latestKey))
-      .catch(() => {});
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [signedIn, latestKey]);
+  }, [signedIn, hasWork, actions]);
 }

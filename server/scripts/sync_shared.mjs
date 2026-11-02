@@ -2,7 +2,7 @@
 // so both use the exact same rules. Runs automatically before dev, build and test.
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 
-const files = ['exercises', 'ranks', 'heroes', 'muscles']
+const files = ['exercises', 'ranks', 'heroes', 'muscles', 'foods', 'nutrients']
 mkdirSync('app/shared', { recursive: true })
 for (const f of files) {
   // Node-style imports need the file extension on the server.

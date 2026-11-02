@@ -23,10 +23,14 @@ On Windows, allow Node through the firewall when asked, otherwise your phone can
 | --- | --- |
 | `POST /auth/signup` | email, username, password, profile → token |
 | `POST /auth/login` | email, password → token + profile |
+| `POST /auth/check` | is this email / username free? |
 | `GET/PUT /account/profile` | the app's profile (name, hero, body stats, goal…) |
 | `PUT /account/identity` | change username / email |
 | `GET/PUT /account/weights` | body weight, one entry per day |
 | `GET/POST/DELETE /account/workouts` | finished workouts (upload is retry-safe) |
+| `GET/POST /account/food-logs`, `DELETE /account/food-logs/:id` | food log (upload is retry-safe) |
+| `GET /account/days`, `PUT /account/days/:date` | eaten meals + water per day |
+| `GET/PUT /account/meal-plan` | weekly meal plan + shopping-list ticks |
 | `POST /account/logout` | revokes the token |
 | `GET /leaderboards/:exerciseId` | top 50 + your position |
 | `GET /duels/:username` | you vs them: last 7 days + shared lifts |

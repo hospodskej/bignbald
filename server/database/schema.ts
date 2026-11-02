@@ -32,6 +32,53 @@ export class AuthAccessTokenSchema extends BaseModel {
   declare updatedAt: DateTime | null
 }
 
+export class DayLogSchema extends BaseModel {
+  static $columns = ['date', 'id', 'mealsEaten', 'userId', 'waterMl'] as const
+  $columns = DayLogSchema.$columns
+  @column()
+  declare date: string
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare mealsEaten: any
+  @column()
+  declare userId: number
+  @column()
+  declare waterMl: number
+}
+
+export class FoodLogSchema extends BaseModel {
+  static $columns = ['createdAt', 'date', 'foodId', 'grams', 'id', 'userId'] as const
+  $columns = FoodLogSchema.$columns
+  @column.dateTime({ autoCreate: true })
+  declare createdAt: DateTime
+  @column()
+  declare date: string
+  @column()
+  declare foodId: string
+  @column()
+  declare grams: number
+  @column({ isPrimary: true })
+  declare id: string
+  @column()
+  declare userId: number
+}
+
+export class MealPlanSchema extends BaseModel {
+  static $columns = ['groceryChecked', 'id', 'plan', 'updatedAt', 'userId'] as const
+  $columns = MealPlanSchema.$columns
+  @column()
+  declare groceryChecked: any
+  @column({ isPrimary: true })
+  declare id: number
+  @column()
+  declare plan: any
+  @column.dateTime({ autoCreate: true, autoUpdate: true })
+  declare updatedAt: DateTime | null
+  @column()
+  declare userId: number
+}
+
 export class ProfileSchema extends BaseModel {
   static $columns = ['createdAt', 'data', 'hero', 'id', 'updatedAt', 'userId'] as const
   $columns = ProfileSchema.$columns

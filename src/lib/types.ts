@@ -83,6 +83,18 @@ export interface AppState {
   mealPlan: MealPlan;
   groceryChecked: string[];
   lastRankUps: RankUp[];
-  /** Finished workouts not yet uploaded to the server (ids). */
+  /** Changes waiting to be sent to the server (see lib/outbox.ts). */
+  outbox?: OutboxItem[];
+  /** @deprecated replaced by outbox; converted on load. */
   pendingUploads?: string[];
+  /** 2 = local food/meal/water data has been queued for upload once. */
+  syncVersion?: number;
+}
+
+export interface OutboxItem {
+  id: string;
+  key: string;
+  method: 'POST' | 'PUT' | 'DELETE';
+  path: string;
+  body?: unknown;
 }

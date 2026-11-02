@@ -8,6 +8,9 @@ import { type AccessToken, DbAccessTokensProvider } from '@adonisjs/auth/access_
 import Profile from '#models/profile'
 import Workout from '#models/workout'
 import WeightLog from '#models/weight_log'
+import FoodLog from '#models/food_log'
+import DayLog from '#models/day_log'
+import MealPlan from '#models/meal_plan'
 
 export default class User extends compose(UserSchema, withAuthFinder(hash)) {
   /** Login tokens: stored hashed, revoked on log out, expire after 30 days. */
@@ -22,4 +25,13 @@ export default class User extends compose(UserSchema, withAuthFinder(hash)) {
 
   @hasMany(() => WeightLog)
   declare weightLogs: HasMany<typeof WeightLog>
+
+  @hasMany(() => FoodLog)
+  declare foodLogs: HasMany<typeof FoodLog>
+
+  @hasMany(() => DayLog)
+  declare dayLogs: HasMany<typeof DayLog>
+
+  @hasOne(() => MealPlan)
+  declare mealPlan: HasOne<typeof MealPlan>
 }

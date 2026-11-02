@@ -6,8 +6,9 @@ import type { MealSlot } from '@/data/recipes';
 import { dayKey } from './dates';
 import { generateMealPlan } from './nutrition';
 import { defaultProfile, emptyState } from './seed';
-import type { Account, AppState, LoggedSet, Profile, Session } from './types';
-
+import { enqueue, migrateLocalData, outboxItems } from './outbox';
+import { tokenStore } from './tokenStore';
+import type { Account, AppState, FoodLogItem, LoggedSet, MealPlan, Profile, Session } from './types';
 import { newSession, prefill, rankUps, uid } from './workout';
 
 export interface SignInResult {
@@ -16,6 +17,9 @@ export interface SignInResult {
   profile?: Partial<Profile> | null;
   workouts?: Session[];
   weights?: { date: string; kg: number }[];
+  foodLogs?: FoodLogItem[];
+  days?: { date: string; mealsEaten: string[]; waterMl: number }[];
+  mealPlan?: { plan: MealPlan; groceryChecked: string[] } | null;
 }
 
 const KEY = 'bignbald:v1';
@@ -33,17 +37,21 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
       updateProfile: (patch: Partial<Profile>) =>
         set((s) => {
           const profile = { ...s.profile, ...patch };
-          const mealPlan = patch.dietStyle && patch.dietStyle !== s.profile.dietStyle ? generateMealPlan(patch.dietStyle) : s.mealPlan;
-          return { ...s, profile, mealPlan };
+          const newPlan = Boolean(patch.dietStyle && patch.dietStyle !== s.profile.dietStyle);
+          const next = { ...s, profile, mealPlan: newPlan ? generateMealPlan(profile.dietStyle) : s.mealPlan };
+          return enqueue(next, outboxItems.profile(next), ...(newPlan ? [outboxItems.mealPlan(next)] : []));
         }),
       updateAccount: (patch: Partial<Account>) =>
         set((s) => ({ ...s, account: { ...accountOf(s), ...patch } })),
       logWeight: (kg: number) =>
-        set((s) => ({
-          ...s,
-          profile: { ...s.profile, weightKg: kg },
-          weightLog: [...s.weightLog.filter((w) => w.date !== dayKey()), { date: dayKey(), kg }],
-        })),
+        set((s) => {
+          const next = {
+            ...s,
+            profile: { ...s.profile, weightKg: kg },
+            weightLog: [...s.weightLog.filter((w) => w.date !== dayKey()), { date: dayKey(), kg }],
+          };
+          return enqueue(next, outboxItems.weight(dayKey(), kg), outboxItems.profile(next));
+        }),
 
       startWorkout: (dayId: string) => set((s) => ({ ...s, active: newSession(s, dayId) })),
       discardWorkout: () => set((s) => ({ ...s, active: null })),
@@ -77,15 +85,13 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
         set((s) => {
           if (!s.active) return s;
           const session = { ...s.active, finishedAt: Date.now() };
-          return {
-            ...s,
-            history: [...s.history, session],
-            active: null,
-            lastRankUps: rankUps(s.history, session),
-            pendingUploads: [...(s.pendingUploads ?? []), session.id],
-          };
+          return enqueue(
+            { ...s, history: [...s.history, session], active: null, lastRankUps: rankUps(s.history, session) },
+            outboxItems.workout(session),
+          );
         }),
-      markUploaded: (id: string) => set((s) => ({ ...s, pendingUploads: (s.pendingUploads ?? []).filter((x) => x !== id) })),
+      /** The sync hook calls this once the server has an item (or rejected it for good). */
+      markSent: (itemId: string) => set((s) => ({ ...s, outbox: (s.outbox ?? []).filter((x) => x.id !== itemId) })),
 
       /**
        * After sign up / log in. A new account starts empty; logging in loads
@@ -97,36 +103,66 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
           const saved = Object.fromEntries(Object.entries(r.profile ?? s.profile).filter(([, v]) => v !== null && v !== undefined));
           const profile = { ...defaultProfile, ...saved } as Profile;
           const base = emptyState(profile);
+          const days = r.days ?? [];
           return {
             ...base,
             account: { status: 'registered', username: r.user.username, email: r.user.email, token: r.token },
             history: r.workouts ?? [],
             weightLog: r.weights?.length ? r.weights : base.weightLog,
+            foodLog: r.foodLogs ?? [],
+            mealsEaten: Object.fromEntries(days.map((d) => [d.date, d.mealsEaten as MealSlot[]])),
+            waterMl: Object.fromEntries(days.map((d) => [d.date, d.waterMl])),
+            mealPlan: r.mealPlan?.plan ?? base.mealPlan,
+            groceryChecked: r.mealPlan?.groceryChecked ?? [],
+            outbox: [],
+            syncVersion: 2,
           };
         }),
-      signOut: () => set((s) => ({ ...s, account: { ...accountOf(s), status: 'guest', token: undefined } })),
+      signOut: () => set((s) => ({ ...s, account: { ...accountOf(s), status: 'guest', token: undefined }, outbox: [] })),
 
       logFood: (foodId: string, grams: number) =>
-        set((s) => ({ ...s, foodLog: [...s.foodLog, { id: uid(), date: dayKey(), foodId, grams }] })),
-      removeFood: (id: string) => set((s) => ({ ...s, foodLog: s.foodLog.filter((f) => f.id !== id) })),
+        set((s) => {
+          const item = { id: uid(), date: dayKey(), foodId, grams };
+          return enqueue({ ...s, foodLog: [...s.foodLog, item] }, outboxItems.addFood(item));
+        }),
+      removeFood: (id: string) =>
+        set((s) => {
+          const next = { ...s, foodLog: s.foodLog.filter((f) => f.id !== id) };
+          // Never reached the server? Then just drop the queued add instead of sending a delete.
+          const unsent = (s.outbox ?? []).some((x) => x.key === `food:${id}` && x.method === 'POST');
+          return unsent ? { ...next, outbox: (s.outbox ?? []).filter((x) => x.key !== `food:${id}`) } : enqueue(next, outboxItems.removeFood(id));
+        }),
       toggleMeal: (slot: MealSlot) =>
         set((s) => {
           const key = dayKey();
           const eaten = s.mealsEaten[key] ?? [];
-          return { ...s, mealsEaten: { ...s.mealsEaten, [key]: eaten.includes(slot) ? eaten.filter((x) => x !== slot) : [...eaten, slot] } };
+          const next = { ...s, mealsEaten: { ...s.mealsEaten, [key]: eaten.includes(slot) ? eaten.filter((x) => x !== slot) : [...eaten, slot] } };
+          return enqueue(next, outboxItems.day(next, key));
         }),
       setMeal: (day: number, slot: MealSlot, recipeId: string) =>
-        set((s) => ({ ...s, mealPlan: { ...s.mealPlan, [day]: { ...s.mealPlan[day], [slot]: recipeId } } })),
+        set((s) => {
+          const next = { ...s, mealPlan: { ...s.mealPlan, [day]: { ...s.mealPlan[day], [slot]: recipeId } } };
+          return enqueue(next, outboxItems.mealPlan(next));
+        }),
       addWater: (ml: number) =>
-        set((s) => ({ ...s, waterMl: { ...s.waterMl, [dayKey()]: Math.max(0, (s.waterMl[dayKey()] ?? 0) + ml) } })),
+        set((s) => {
+          const next = { ...s, waterMl: { ...s.waterMl, [dayKey()]: Math.max(0, (s.waterMl[dayKey()] ?? 0) + ml) } };
+          return enqueue(next, outboxItems.day(next, dayKey()));
+        }),
       toggleGrocery: (foodId: string) =>
-        set((s) => ({
-          ...s,
-          groceryChecked: s.groceryChecked.includes(foodId) ? s.groceryChecked.filter((x) => x !== foodId) : [...s.groceryChecked, foodId],
-        })),
-      clearGroceries: () => set((s) => ({ ...s, groceryChecked: [] })),
+        set((s) => {
+          const has = s.groceryChecked.includes(foodId);
+          const next = { ...s, groceryChecked: has ? s.groceryChecked.filter((x) => x !== foodId) : [...s.groceryChecked, foodId] };
+          return enqueue(next, outboxItems.mealPlan(next));
+        }),
+      clearGroceries: () =>
+        set((s) => {
+          const next = { ...s, groceryChecked: [] };
+          return enqueue(next, outboxItems.mealPlan(next));
+        }),
 
-      startFresh: () => set((s) => emptyState(s.profile)),
+      /** After the server deleted your workouts: clear them here too, but stay signed in. */
+      startFresh: () => set((s) => ({ ...emptyState(s.profile), account: s.account, syncVersion: 2 })),
     };
   }, [set]);
 }
@@ -139,19 +175,34 @@ export function StoreProvider({ children, fallback }: { children: ReactNode; fal
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    AsyncStorage.getItem(KEY)
-      .then((raw) => {
-        const parsed = raw ? (JSON.parse(raw) as AppState) : null;
-        setState(parsed?.version === 1 ? parsed : emptyState());
-      })
-      .catch(() => setState(emptyState()));
+    Promise.all([AsyncStorage.getItem(KEY).catch(() => null), tokenStore.get()]).then(([raw, token]) => {
+      let parsed: AppState | null = null;
+      try {
+        parsed = raw ? (JSON.parse(raw) as AppState) : null;
+      } catch {}
+      const loaded = parsed?.version === 1 ? parsed : emptyState();
+      // Older versions kept the token in the app data; it moves to the token store below.
+      const t = token ?? loaded.account?.token;
+      setState(migrateLocalData(loaded.account ? { ...loaded, account: { ...loaded.account, token: t ?? undefined } } : loaded));
+    });
   }, []);
 
+  // App data: saved shortly after every change, never including the login token.
   useEffect(() => {
     if (!state) return;
     if (timer.current) clearTimeout(timer.current);
-    timer.current = setTimeout(() => AsyncStorage.setItem(KEY, JSON.stringify(state)).catch(() => {}), 250);
+    const safe = state.account ? { ...state, account: { ...state.account, token: undefined } } : state;
+    timer.current = setTimeout(() => AsyncStorage.setItem(KEY, JSON.stringify(safe)).catch(() => {}), 250);
   }, [state]);
+
+  // Login token: its own secure storage.
+  const token = state?.account?.token;
+  const loaded = state !== null;
+  useEffect(() => {
+    if (!loaded) return;
+    if (token) tokenStore.set(token);
+    else tokenStore.clear();
+  }, [token, loaded]);
 
   const set = useCallback((fn: (s: AppState) => AppState) => setState((s) => (s ? fn(s) : s)), []);
   const actions = useActions(set);

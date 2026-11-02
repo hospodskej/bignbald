@@ -16,7 +16,7 @@ import { dayKey, formatInt } from '@/lib/dates';
 import { GOALS, targets } from '@/lib/nutrition';
 import { defaultProfile } from '@/lib/seed';
 import { useStore } from '@/lib/store';
-import type { Goal, Profile, Session, Sex } from '@/lib/types';
+import type { FoodLogItem, Goal, MealPlan, Profile, Session, Sex } from '@/lib/types';
 import { colors, fonts, radius } from '@/theme/tokens';
 
 type AuthResponse = { user: { username: string; email: string }; token: string; profile?: Record<string, unknown> | null };
@@ -123,11 +123,14 @@ export default function Auth() {
   const login = async () => {
     const r = await api<AuthResponse>('POST', '/auth/login', { email, password });
     setApiToken(r.token);
-    const [workouts, weights] = await Promise.all([
+    const [workouts, weights, foodLogs, days, mealPlan] = await Promise.all([
       api<Session[]>('GET', '/account/workouts'),
       api<{ date: string; kg: number }[]>('GET', '/account/weights'),
+      api<FoodLogItem[]>('GET', '/account/food-logs'),
+      api<{ date: string; mealsEaten: string[]; waterMl: number }[]>('GET', '/account/days'),
+      api<{ plan: MealPlan | null; groceryChecked: string[] }>('GET', '/account/meal-plan'),
     ]);
-    actions.signIn({ ...r, workouts, weights });
+    actions.signIn({ ...r, workouts, weights, foodLogs, days, mealPlan: mealPlan.plan ? { plan: mealPlan.plan, groceryChecked: mealPlan.groceryChecked } : null });
   };
 
   const createAccount = async () => {
