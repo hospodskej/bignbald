@@ -12,7 +12,7 @@ export const HEROES = {
     deep: '#4A1A17',
     soft: '#2A1416',
     tagline: 'Raw power and volume.',
-    tags: ['6 days', '5+ reps to failure'],
+    tags: ['6 days', 'Push / Pull / Legs + Arms'],
     coach: [
       'Make this one count.',
       'No skipped sets. No excuses.',
