@@ -19,5 +19,6 @@ if (!/^APP_KEY=\S+/m.test(readFileSync('.env', 'utf8'))) {
   run('node ace generate:key')
 }
 run('node scripts/sync_shared.mjs')
+run('node ace codegen')
 run('node ace migration:run')
 console.log('\nReady. Start the API with: npm run dev')
