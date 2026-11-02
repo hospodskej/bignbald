@@ -5,7 +5,7 @@ import { useState } from 'react';
 import { BodyMap, HeatLegend } from '@/components/BodyMap';
 import { Icon } from '@/components/Icon';
 import { RankPill } from '@/components/Rank';
-import { Button, Card, Chip, Halftone, Header, Row, Screen, T } from '@/components/ui';
+import { Button, Card, Chip, Header, Row, Screen, T } from '@/components/ui';
 import { exercise, FAMILIES } from '@/data/exercises';
 import { hero, HeroId, HEROES } from '@/data/heroes';
 import { topMuscles } from '@/data/muscles';
@@ -37,7 +37,6 @@ export default function PlanScreen() {
       </ScrollView>
 
       <Card style={{ alignItems: 'center', backgroundColor: '#12151C', overflow: 'hidden' }}>
-        <Halftone color={h.color} opacity={0.1} gap={10} />
         <BodyMap heat={heat} height={238} interactive />
         <HeatLegend />
         <T v="small" color={colors.textDim}>Hits most: {topMuscles(heat).join(', ')}</T>

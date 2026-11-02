@@ -5,7 +5,7 @@ import { BodyMap } from '@/components/BodyMap';
 import { HeroBadge } from '@/components/HeroBadge';
 import { Icon } from '@/components/Icon';
 import { RankPill } from '@/components/Rank';
-import { Bar, Button, Card, Halftone, Panel, Row, Screen, T } from '@/components/ui';
+import { Bar, Button, Card, Panel, Row, Screen, T } from '@/components/ui';
 import { exercise } from '@/data/exercises';
 import { asHero, hero } from '@/data/heroes';
 import { dayNumber, planDay } from '@/data/plans';
@@ -68,7 +68,6 @@ export default function Home() {
       ) : null}
 
       <Panel color={h.color} deep={h.deep} bg="#1A0F11" pad={14}>
-        <Halftone color={h.color} opacity={0.3} gap={9} style={{ left: '45%', bottom: '45%' }} />
         <Row style={{ alignItems: 'flex-start' }} gap={10}>
           <View style={{ flex: 1, gap: 8 }}>
             <View style={{ alignSelf: 'flex-start', backgroundColor: h.color, paddingHorizontal: 8, paddingVertical: 3, transform: [{ skewX: '-10deg' }] }}>
