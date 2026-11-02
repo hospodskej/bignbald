@@ -11,6 +11,7 @@ import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { PhoneFrame } from '@/components/PhoneFrame';
 import { accountOf, StoreProvider, useStore } from '@/lib/store';
+import { useServerSync } from '@/lib/sync';
 import { colors, fonts } from '@/theme/tokens';
 
 const Loading = () => (
@@ -48,6 +49,7 @@ export default function RootLayout() {
 
 /** Signed out: only the auth screen exists. Signed in: the whole app. */
 function RootStack() {
+  useServerSync();
   const { state } = useStore();
   const signedIn = accountOf(state).status === 'registered';
   return (

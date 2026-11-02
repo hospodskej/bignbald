@@ -6,12 +6,16 @@ import { HeroBadge } from '@/components/HeroBadge';
 import { parseEmail, parseText, parseUsername } from '@/components/Settings';
 import { Button, Halftone, Row, T } from '@/components/ui';
 import { HERO_IDS, hero, HeroId } from '@/data/heroes';
+import { api, setApiToken } from '@/lib/api';
 import { accountOf, useStore } from '@/lib/store';
+import type { Session } from '@/lib/types';
 import { colors, fonts, radius } from '@/theme/tokens';
+
+type AuthResponse = { user: { username: string; email: string }; token: string; profile?: Record<string, unknown> | null };
 
 /**
  * The front door: you sign up or log in before anything else.
- * Validation and the local profile are ready; the server call plugs in at `submit`.
+ * Sign up creates the account on the server; log in also downloads your history.
  */
 export default function Auth() {
   const insets = useSafeAreaInsets();
@@ -35,12 +39,33 @@ export default function Auth() {
   };
   const ok = Object.values(errors).every((e) => !e);
 
-  const submit = () => {
+  const [busy, setBusy] = useState(false);
+  const [serverError, setServerError] = useState<string | null>(null);
+
+  const submit = async () => {
     setTried(true);
-    if (!ok) return;
-    // TODO(server): create the account / verify the password here.
-    if (signup) actions.updateProfile({ name: name.trim(), hero: pick });
-    actions.updateAccount({ status: 'registered', email: parseEmail(email)!, username: signup ? parseUsername(username)! : acc.username });
+    setServerError(null);
+    if (!ok || busy) return;
+    setBusy(true);
+    try {
+      if (signup) {
+        const profile = { ...state.profile, name: name.trim(), hero: pick };
+        const r = await api<AuthResponse>('POST', '/auth/signup', { email, username, password, profile });
+        actions.signIn({ ...r, profile });
+      } else {
+        const r = await api<AuthResponse>('POST', '/auth/login', { email, password });
+        setApiToken(r.token);
+        const [workouts, weights] = await Promise.all([
+          api<Session[]>('GET', '/account/workouts'),
+          api<{ date: string; kg: number }[]>('GET', '/account/weights'),
+        ]);
+        actions.signIn({ ...r, workouts, weights });
+      }
+    } catch (e) {
+      setServerError(e instanceof Error ? e.message : 'Something went wrong');
+    } finally {
+      setBusy(false);
+    }
   };
 
   const field = (label: string, value: string, onChange: (s: string) => void, error: string | null, opts: Partial<React.ComponentProps<typeof TextInput>> = {}) => (
@@ -106,10 +131,12 @@ export default function Auth() {
           </View>
         ) : null}
 
-        <Button title={signup ? 'Create account' : 'Log in'} color={h.color} size="lg" onPress={submit} />
-        <T v="small" style={{ fontSize: 11, textAlign: 'center' }}>
-          Accounts sync once the server is live. Until then your profile is stored on this device.
-        </T>
+        {serverError ? (
+          <View style={{ backgroundColor: '#2A1416', borderColor: colors.danger, borderWidth: 1, borderRadius: radius.sm, padding: 10 }}>
+            <T v="small" color={colors.text}>{serverError}</T>
+          </View>
+        ) : null}
+        <Button title={busy ? 'One sec…' : signup ? 'Create account' : 'Log in'} color={h.color} size="lg" disabled={busy} onPress={submit} />
       </ScrollView>
     </KeyboardAvoidingView>
   );

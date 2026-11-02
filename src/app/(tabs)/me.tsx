@@ -9,7 +9,8 @@ import {
 import { Bar, Card, Halftone, Panel, Row, Screen, Stat, T } from '@/components/ui';
 import { HERO_IDS, hero, HeroId } from '@/data/heroes';
 import { DIET_STYLES, DietStyle } from '@/data/recipes';
-import { confirm } from '@/lib/confirm';
+import { api } from '@/lib/api';
+import { confirm, notify } from '@/lib/confirm';
 import { formatInt, formatKg } from '@/lib/dates';
 import { GOALS, leanMassKg, targets } from '@/lib/nutrition';
 import { accountOf, useStore } from '@/lib/store';
@@ -37,6 +38,12 @@ export default function Me() {
   /** Props for one row: open/close it, and a ready-made Save/Cancel text editor when asked. */
   const row = (f: Field) => ({ open: editing === f, onToggle: () => setEditing((e) => (e === f ? null : f)) });
   const close = () => setEditing(null);
+  /** Username / email live on the server (they must be unique); errors show under the field. */
+  const saveIdentity = async (change: { username?: string; email?: string }) => {
+    const r = await api<{ user: { username: string; email: string } }>('PUT', '/account/identity', change);
+    actions.updateAccount({ username: r.user.username, email: r.user.email });
+    close();
+  };
 
   const bodyCompLabel =
     p.bodyComp.mode === 'bodyFat' ? `${p.bodyComp.pct}% body fat` : p.bodyComp.mode === 'leanMass' ? `${formatKg(p.bodyComp.kg)} kg lean` : '';
@@ -66,9 +73,9 @@ export default function Me() {
         <SettingRow label="Display name" value={p.name} {...row('name')}
           editor={<TextEditor initial={p.name} accent={h.color} parse={parseText(1, 24)} error="1 to 24 characters" onCancel={close} onSave={(name) => set({ name })} />} />
         <SettingRow label="Username" value={acc.username ? `@${acc.username}` : ''} hint="Shown on leaderboards" {...row('username')}
-          editor={<TextEditor initial={acc.username} accent={h.color} placeholder="ironbro_99" parse={parseUsername} error="3-20 letters, numbers, _ or ." onCancel={close} onSave={(username) => { actions.updateAccount({ username }); close(); }} />} />
+          editor={<TextEditor initial={acc.username} accent={h.color} placeholder="ironbro_99" parse={parseUsername} error="3-20 letters, numbers, _ or ." onCancel={close} onSave={(username) => saveIdentity({ username })} />} />
         <SettingRow label="Email" value={acc.email} last {...row('email')}
-          editor={<TextEditor initial={acc.email} accent={h.color} keyboard="email-address" placeholder="you@example.com" parse={parseEmail} error="Not a valid email" onCancel={close} onSave={(email) => { actions.updateAccount({ email }); close(); }} />} />
+          editor={<TextEditor initial={acc.email} accent={h.color} keyboard="email-address" placeholder="you@example.com" parse={parseEmail} error="Not a valid email" onCancel={close} onSave={(email) => saveIdentity({ email })} />} />
       </Section>
 
       <Section title="Body">
@@ -117,19 +124,21 @@ export default function Me() {
         <SettingRow label="Hero" value={h.name} hint="Your plan and your avatar" {...row('hero')}
           editor={<ChoiceEditor<HeroId> accent={h.color} value={p.hero} options={HERO_IDS.map((id) => ({ key: id, label: hero(id).name, sub: hero(id).tags.join(' · ') }))}
             onPick={(id) => (id === p.hero ? close() : confirm(`Become ${hero(id).name}?`, 'Your plan and avatar switch. History and ranks stay.', () => set({ hero: id }), 'Switch'))} />} />
-        <SettingRow label="Main rival" value={p.rivalName} hint="Shown in your duel on Home" last {...row('rival')}
-          editor={<TextEditor initial={p.rivalName} accent={h.color} parse={parseText(1, 20)} error="1 to 20 characters" onCancel={close} onSave={(rivalName) => set({ rivalName })} />} />
+        <SettingRow label="Main rival" value={p.rivalName ? `@${p.rivalName}` : ''} hint="Their username · your duel on Home" last {...row('rival')}
+          editor={<TextEditor initial={p.rivalName} accent={h.color} placeholder="their_username" parse={parseUsername} error="3-20 letters, numbers, _ or ." onCancel={close} onSave={(rivalName) => set({ rivalName })} />} />
       </Section>
 
       <Section title="Session & data">
-        <Pressable onPress={() => confirm('Log out?', 'Your data stays on this device.', () => actions.updateAccount({ status: 'guest' }), 'Log out')} style={dataRow}>
+        <Pressable onPress={() => confirm('Log out?', 'You can log back in on any phone.', () => { api('POST', '/account/logout').catch(() => {}); actions.signOut(); }, 'Log out')} style={dataRow}>
           <T v="body" color={colors.textDim}>Log out</T>
         </Pressable>
-        <Pressable onPress={() => confirm('Load demo data?', 'Replaces workouts and diet logs with 3 weeks of sample training.', actions.loadDemo, 'Load')} style={dataRow}>
-          <T v="body" color={colors.textDim}>Load demo data</T>
-        </Pressable>
-        <Pressable onPress={() => confirm('Start fresh?', 'Deletes all workouts and diet logs. Your profile stays.', actions.startFresh, 'Delete')} style={[dataRow, { borderBottomWidth: 0 }]}>
-          <T v="body" color={colors.danger}>Delete my workouts and logs</T>
+        <Pressable
+          onPress={() =>
+            confirm('Delete all workouts?', 'Removes every workout from your account and this phone. Your profile stays.', () =>
+              api('DELETE', '/account/workouts').then(actions.startFresh).catch((e: Error) => notify('Not deleted', e.message)), 'Delete')
+          }
+          style={[dataRow, { borderBottomWidth: 0 }]}>
+          <T v="body" color={colors.danger}>Delete my workouts</T>
         </Pressable>
       </Section>
     </Screen>

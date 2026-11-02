@@ -5,10 +5,12 @@ export type Goal = 'bigger' | 'leaner' | 'lose' | 'maintain';
 export type Sex = 'male' | 'female';
 
 export interface Account {
-  /** guest = local only. registered = signed up (sync arrives with the server). */
+  /** guest = signed out. registered = signed in with a token from the server. */
   status: 'guest' | 'registered';
   username: string;
   email: string;
+  /** Server login token. */
+  token?: string;
 }
 
 export interface Profile {
@@ -81,4 +83,6 @@ export interface AppState {
   mealPlan: MealPlan;
   groceryChecked: string[];
   lastRankUps: RankUp[];
+  /** Finished workouts not yet uploaded to the server (ids). */
+  pendingUploads?: string[];
 }

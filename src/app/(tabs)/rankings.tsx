@@ -1,26 +1,32 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
-import { Pressable, ScrollView, View } from 'react-native';
+import { Pressable, ScrollView, TextInput, View } from 'react-native';
 
 import { DuelHeader } from '@/components/Duel';
 import { HeroBadge } from '@/components/HeroBadge';
-import { RankPill } from '@/components/Rank';
+import { RankPill, RankTag } from '@/components/Rank';
+import { Status } from '@/components/Status';
 import { Bar, Button, Card, Chip, Halftone, Panel, Row, Screen, T } from '@/components/ui';
 import { exercise } from '@/data/exercises';
-import { hero } from '@/data/heroes';
+import { asHero, hero } from '@/data/heroes';
 import { formatKg } from '@/lib/dates';
-import { duel, leaderboard, LEADERBOARD_LIFTS, rivals } from '@/lib/players';
 import { useStore } from '@/lib/store';
+import { BoardRow, Duel, Leaderboard, useApi } from '@/lib/useApi';
 import { allRanked } from '@/lib/workout';
-import { colors } from '@/theme/tokens';
+import { colors, fonts, radius } from '@/theme/tokens';
 
 type Tab = 'duels' | 'board' | 'mine';
+
+/** Lifts with a global leaderboard. */
+const BOARD_LIFTS = [
+  'bench-press', 'hack-squat', 'ez-bar-curl', 'barbell-rdl', 'incline-barbell-press',
+  'lat-pulldown-wide', 't-bar-row', 'dumbbell-shoulder-press',
+];
 
 export default function Rankings() {
   const { state } = useStore();
   const [tab, setTab] = useState<Tab>('duels');
   const h = hero(state.profile.hero);
-
   return (
     <Screen>
       <View>
@@ -40,92 +46,101 @@ export default function Rankings() {
 function Duels() {
   const { state } = useStore();
   const h = hero(state.profile.hero);
-  const list = rivals(state);
-  const main = duel(state, list[0].id);
-  const you = { name: 'You', hero: state.profile.hero };
+  const rival = state.profile.rivalName.trim().toLowerCase();
+  const duel = useApi<Duel>(rival ? `/duels/${encodeURIComponent(rival)}` : null);
+  const [q, setQ] = useState('');
+  const found = useApi<{ username: string; hero: string }[]>(q.trim().length >= 2 ? `/players?q=${encodeURIComponent(q.trim())}` : null);
+
   return (
     <>
-      <Panel color={h.color} deep={h.deep} bg="#14121A">
-        <Halftone color={hero(main.rival.hero).color} opacity={0.18} style={{ left: '50%' }} />
-        <Halftone color={h.color} opacity={0.18} style={{ right: '50%' }} />
-        <T v="kicker" style={{ textAlign: 'center' }}>Last 7 days</T>
-        <DuelHeader you={you} them={main.rival} score={main.score} big />
-        <Button title="Open duel" color={h.color} onPress={() => router.push({ pathname: '/duel/[id]', params: { id: main.rival.id } })} />
-      </Panel>
-      <T v="kicker" style={{ marginTop: 6 }}>Other rivals</T>
-      {list.slice(1).map((r) => {
-        const d = duel(state, r.id);
-        const lead = d.score.you - d.score.them;
-        return (
-          <Pressable key={r.id} onPress={() => router.push({ pathname: '/duel/[id]', params: { id: r.id } })} accessibilityRole="button">
-            <Row gap={12} style={{ backgroundColor: colors.surface, borderRadius: 14, padding: 12, borderWidth: 1, borderColor: colors.line }}>
-              <HeroBadge id={r.hero} size={35} />
-              <View style={{ flex: 1 }}>
-                <T v="title">{r.name}</T>
-                <T v="small">{hero(r.hero).short} · {lead > 0 ? `you lead by ${lead}` : lead < 0 ? `they lead by ${-lead}` : 'all square'}</T>
-              </View>
-              <T v="h2" color={lead >= 0 ? h.bright : hero(r.hero).bright}>{d.score.you}–{d.score.them}</T>
-            </Row>
-          </Pressable>
-        );
-      })}
-      <T v="small" style={{ textAlign: 'center' }}>Rivals use demo numbers until accounts and the server go live.</T>
+      {rival ? (
+        duel.data ? (
+          <Panel color={h.color} deep={h.deep} bg="#14121A">
+            <Halftone color={hero(asHero(duel.data.rival.hero)).color} opacity={0.18} style={{ left: '50%' }} />
+            <Halftone color={h.color} opacity={0.18} style={{ right: '50%' }} />
+            <T v="kicker" style={{ textAlign: 'center' }}>Your rival · last 7 days</T>
+            <DuelHeader you={{ name: 'You', hero: state.profile.hero }} them={{ name: duel.data.rival.username, hero: asHero(duel.data.rival.hero) }} score={duel.data.score} big />
+            <Button title="Open duel" color={h.color} onPress={() => router.push({ pathname: '/duel/[id]', params: { id: rival } })} />
+          </Panel>
+        ) : (
+          <Status loading={duel.loading} error={duel.error && `${duel.error}. Your rival is set to @${rival} in Me.`} onRetry={duel.reload} />
+        )
+      ) : (
+        <Card>
+          <T v="title">No rival yet</T>
+          <T v="small">Search for your brother or a friend below and make them your main rival.</T>
+        </Card>
+      )}
+
+      <T v="kicker" style={{ marginTop: 6 }}>Find a player</T>
+      <TextInput
+        accessibilityLabel="Search players by username"
+        value={q}
+        onChangeText={setQ}
+        placeholder="Username…"
+        autoCapitalize="none"
+        autoCorrect={false}
+        placeholderTextColor={colors.faint}
+        style={{ height: 42, borderRadius: radius.sm, borderWidth: 1, borderColor: colors.lineStrong, backgroundColor: colors.surface, paddingHorizontal: 12, color: colors.text, fontFamily: fonts.semibold, fontSize: 14 }}
+      />
+      {found.error ? <T v="small" color={colors.danger}>{found.error}</T> : null}
+      {(found.data ?? []).map((p) => (
+        <Pressable key={p.username} onPress={() => router.push({ pathname: '/duel/[id]', params: { id: p.username } })} accessibilityRole="button">
+          <Row gap={10} style={{ backgroundColor: colors.surface, borderRadius: radius.md, padding: 10, borderWidth: 1, borderColor: colors.line }}>
+            <HeroBadge id={asHero(p.hero)} size={34} />
+            <T v="title" style={{ flex: 1 }}>@{p.username}</T>
+            <T v="small">Duel ›</T>
+          </Row>
+        </Pressable>
+      ))}
+      {q.trim().length >= 2 && found.data?.length === 0 ? <T v="small">Nobody with that username yet.</T> : null}
     </>
   );
 }
 
 function Board() {
   const { state } = useStore();
-  const [lift, setLift] = useState(LEADERBOARD_LIFTS[0]);
-  const rows = leaderboard(state, lift);
-  const me = rows.find((r) => r.you);
-  const podium = [rows[1], rows[0], rows[2]];
+  const [lift, setLift] = useState(BOARD_LIFTS[0]);
+  const board = useApi<Leaderboard>(`/leaderboards/${lift}`);
   const h = hero(state.profile.hero);
+  const rows = board.data?.rows ?? [];
   return (
     <>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 6 }}>
-        {LEADERBOARD_LIFTS.map((id) => (
+        {BOARD_LIFTS.map((id) => (
           <Chip key={id} label={exercise(id).name.replace('Barbell ', '').replace(' (wide)', '')} active={id === lift} color={h.color} onPress={() => setLift(id)} />
         ))}
       </ScrollView>
-      <Row gap={8} style={{ alignItems: 'flex-end' }}>
-        {podium.map((r, i) => (
-          <View key={r.id} style={{ flex: 1, alignItems: 'center', gap: 4 }}>
-            <HeroBadge id={r.hero} size={40} />
-            <T v="title" numberOfLines={1} style={{ fontSize: 12 }}>{r.name}</T>
-            <T v="h2" style={{ fontSize: 14 }}>{formatKg(r.kg)} kg</T>
-            <View style={{ width: '100%', height: [70, 96, 54][i], borderTopLeftRadius: 12, borderTopRightRadius: 12, backgroundColor: colors.surface, borderWidth: 1, borderColor: ['#C9D1DA', '#F2C14E', '#D08B57'][i], alignItems: 'center', paddingTop: 6 }}>
-              <T v="display" color={['#C9D1DA', '#F2C14E', '#D08B57'][i]} style={{ fontSize: 22 }}>{r.position}</T>
-            </View>
-          </View>
-        ))}
-      </Row>
-      {rows.slice(3, 12).map((r) => <BoardRow key={r.id} r={r} />)}
-      {me && me.position > 12 ? (
+      <Status loading={board.loading} error={board.error} onRetry={board.reload} />
+      {board.data && rows.length === 0 ? (
+        <Card><T v="small">Nobody has logged {exercise(lift).name.toLowerCase()} yet. Be the first: 5+ reps puts you on the board.</T></Card>
+      ) : null}
+      {rows.map((r) => <BoardItem key={r.username} r={r} />)}
+      {board.data?.me ? (
         <>
           <T v="small" style={{ textAlign: 'center' }}>…</T>
-          <BoardRow r={me} />
+          <BoardItem r={board.data.me} />
         </>
       ) : null}
-      {!me ? <T v="small" style={{ textAlign: 'center' }}>Log {exercise(lift).name.toLowerCase()} with 5+ reps to get on the board.</T> : null}
-      <T v="small" style={{ textAlign: 'center' }}>Global players are demo data until the server goes live.</T>
+      {board.data ? <T v="small" style={{ textAlign: 'center' }}>{board.data.total} {board.data.total === 1 ? 'player' : 'players'} ranked</T> : null}
     </>
   );
 }
 
-function BoardRow({ r }: { r: ReturnType<typeof leaderboard>[number] }) {
-  const h = hero(r.hero);
+function BoardItem({ r }: { r: BoardRow }) {
+  const h = hero(asHero(r.hero));
+  const medal = ['#F2C14E', '#C9D1DA', '#D08B57'][r.position - 1];
   return (
-    <Row gap={12} style={{ backgroundColor: r.you ? h.soft : colors.surface, borderColor: r.you ? h.color : colors.surface, borderWidth: 1, borderRadius: 12, padding: 10 }}>
-      <T v="h2" color={r.you ? h.bright : colors.muted} style={{ width: 34, fontSize: 14 }}>{r.position}</T>
-      <HeroBadge id={r.hero} size={29} />
+    <Row gap={10} style={{ backgroundColor: r.you ? h.soft : colors.surface, borderColor: r.you ? h.color : medal ?? colors.surface, borderWidth: 1, borderRadius: radius.md, padding: 9 }}>
+      <T v="h2" color={medal ?? (r.you ? h.bright : colors.muted)} style={{ width: 30, fontSize: 16 }}>{r.position}</T>
+      <HeroBadge id={asHero(r.hero)} size={32} />
       <View style={{ flex: 1 }}>
-        <T v="title" style={{ fontSize: 13 }}>{r.you ? 'You' : r.name}</T>
-        <T v="small" style={{ fontSize: 12 }}>{r.you ? h.short : `${r.country} · ${h.short}`}</T>
+        <T v="title" style={{ fontSize: 13 }}>{r.you ? 'You' : `@${r.username}`}</T>
+        <T v="small" style={{ fontSize: 11 }}>{h.short}</T>
       </View>
-      <View style={{ alignItems: 'flex-end' }}>
+      <View style={{ alignItems: 'flex-end', gap: 3 }}>
         <T v="title" style={{ fontSize: 13 }}>{formatKg(r.kg)} kg</T>
-        <T v="h2" color={r.rankColor} style={{ fontSize: 13 }}>{r.rankLabel.toUpperCase()}</T>
+        <RankTag label={r.rankLabel} color={r.rankColor} />
       </View>
     </Row>
   );
@@ -138,12 +153,12 @@ function MyRanks() {
   return (
     <>
       {ranked.map(({ id, rank, kg }) => rank && (
-        <Card key={id} style={{ gap: 8 }}>
+        <Card key={id} style={{ gap: 6 }}>
           <Row style={{ justifyContent: 'space-between' }}>
             <T v="title" style={{ flex: 1 }}>{exercise(id).name}</T>
             <RankPill rank={rank} />
           </Row>
-          <Bar value={rank.progress} color={rank.tier.color} height={6} />
+          <Bar value={rank.progress} color={rank.tier.color} height={5} />
           <T v="small">Best {formatKg(kg)} kg{rank.nextKg ? ` · ${formatKg(rank.nextKg)} kg for ${rank.nextLabel}` : ' · top tier'}</T>
         </Card>
       ))}

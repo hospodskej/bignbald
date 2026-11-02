@@ -71,13 +71,25 @@ function SaveCancel({ onSave, onCancel, accent, disabled }: { onSave: () => void
 
 /** Text or number editor. `parse` returns the value to save, or null if invalid. */
 export function TextEditor<V>({ initial, onSave, onCancel, accent, unit, keyboard, placeholder, parse, error, secure }: {
-  initial: string; onSave: (v: V) => void; onCancel: () => void; accent: string; unit?: string; keyboard?: KeyboardTypeOptions;
+  initial: string; onSave: (v: V) => void | Promise<void>; onCancel: () => void; accent: string; unit?: string; keyboard?: KeyboardTypeOptions;
   placeholder?: string; parse: (s: string) => V | null; error?: string; secure?: boolean;
 }) {
   const [text, setText] = useState(initial);
+  const [busy, setBusy] = useState(false);
+  const [failed, setFailed] = useState<string | null>(null);
   const parsed = parse(text);
-  const save = () => {
-    if (parsed !== null) onSave(parsed);
+  /** Saves can be async (e.g. the server checks a username); a rejection shows its message here. */
+  const save = async () => {
+    if (parsed === null || busy) return;
+    setBusy(true);
+    setFailed(null);
+    try {
+      await onSave(parsed);
+    } catch (e) {
+      setFailed(e instanceof Error ? e.message : 'Could not save');
+    } finally {
+      setBusy(false);
+    }
   };
   return (
     <>
@@ -85,7 +97,10 @@ export function TextEditor<V>({ initial, onSave, onCancel, accent, unit, keyboar
         <TextInput
           autoFocus
           value={text}
-          onChangeText={setText}
+          onChangeText={(t) => {
+            setText(t);
+            setFailed(null);
+          }}
           onSubmitEditing={save}
           keyboardType={keyboard}
           placeholder={placeholder}
@@ -96,9 +111,10 @@ export function TextEditor<V>({ initial, onSave, onCancel, accent, unit, keyboar
           style={inputStyle}
         />
         {unit ? <T v="small">{unit}</T> : null}
-        <SaveCancel onSave={save} onCancel={onCancel} accent={accent} disabled={parsed === null} />
+        <SaveCancel onSave={save} onCancel={onCancel} accent={accent} disabled={parsed === null || busy} />
       </Row>
       {parsed === null && text.length > 0 && error ? <T v="small" color={colors.danger}>{error}</T> : null}
+      {failed ? <T v="small" color={colors.danger}>{failed}</T> : null}
     </>
   );
 }

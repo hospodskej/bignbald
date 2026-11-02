@@ -1,0 +1,15 @@
+{
+  "short_name": "Big N Bald",
+  "name": "Big N Bald",
+  "description": "Train like a hero. Rank up every lift.",
+  "icons": [
+    { "src": "/logo192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "/logo512.png", "type": "image/png", "sizes": "512x512", "purpose": "maskable" }
+  ],
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "theme_color": "#0B0D12",
+  "background_color": "#0B0D12"
+}

@@ -5,9 +5,18 @@ import { slotKey } from '@/data/plans';
 import type { MealSlot } from '@/data/recipes';
 import { dayKey } from './dates';
 import { generateMealPlan } from './nutrition';
-import { demoState, emptyState } from './seed';
-import type { Account, AppState, LoggedSet, Profile } from './types';
+import { defaultProfile, emptyState } from './seed';
+import type { Account, AppState, LoggedSet, Profile, Session } from './types';
+
 import { newSession, prefill, rankUps, uid } from './workout';
+
+export interface SignInResult {
+  user: { username: string; email: string };
+  token: string;
+  profile?: Partial<Profile> | null;
+  workouts?: Session[];
+  weights?: { date: string; kg: number }[];
+}
 
 const KEY = 'bignbald:v1';
 
@@ -68,8 +77,32 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
         set((s) => {
           if (!s.active) return s;
           const session = { ...s.active, finishedAt: Date.now() };
-          return { ...s, history: [...s.history, session], active: null, lastRankUps: rankUps(s.history, session) };
+          return {
+            ...s,
+            history: [...s.history, session],
+            active: null,
+            lastRankUps: rankUps(s.history, session),
+            pendingUploads: [...(s.pendingUploads ?? []), session.id],
+          };
         }),
+      markUploaded: (id: string) => set((s) => ({ ...s, pendingUploads: (s.pendingUploads ?? []).filter((x) => x !== id) })),
+
+      /**
+       * After sign up / log in. A new account starts empty; logging in loads
+       * everything the server has for that account.
+       */
+      signIn: (r: SignInResult) =>
+        set((s) => {
+          const profile = { ...defaultProfile, ...(r.profile ?? s.profile) } as Profile;
+          const base = emptyState(profile);
+          return {
+            ...base,
+            account: { status: 'registered', username: r.user.username, email: r.user.email, token: r.token },
+            history: r.workouts ?? [],
+            weightLog: r.weights?.length ? r.weights : base.weightLog,
+          };
+        }),
+      signOut: () => set((s) => ({ ...s, account: { ...accountOf(s), status: 'guest', token: undefined } })),
 
       logFood: (foodId: string, grams: number) =>
         set((s) => ({ ...s, foodLog: [...s.foodLog, { id: uid(), date: dayKey(), foodId, grams }] })),
@@ -91,7 +124,6 @@ function useActions(set: (fn: (s: AppState) => AppState) => void) {
         })),
       clearGroceries: () => set((s) => ({ ...s, groceryChecked: [] })),
 
-      loadDemo: () => set(() => demoState()),
       startFresh: () => set((s) => emptyState(s.profile)),
     };
   }, [set]);
@@ -108,9 +140,9 @@ export function StoreProvider({ children, fallback }: { children: ReactNode; fal
     AsyncStorage.getItem(KEY)
       .then((raw) => {
         const parsed = raw ? (JSON.parse(raw) as AppState) : null;
-        setState(parsed?.version === 1 ? parsed : demoState());
+        setState(parsed?.version === 1 ? parsed : emptyState());
       })
-      .catch(() => setState(demoState()));
+      .catch(() => setState(emptyState()));
   }, []);
 
   useEffect(() => {

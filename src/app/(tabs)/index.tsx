@@ -7,11 +7,11 @@ import { Icon } from '@/components/Icon';
 import { RankPill } from '@/components/Rank';
 import { Bar, Button, Card, Halftone, Panel, Row, Screen, T } from '@/components/ui';
 import { exercise } from '@/data/exercises';
-import { hero } from '@/data/heroes';
+import { asHero, hero } from '@/data/heroes';
 import { dayNumber, planDay } from '@/data/plans';
 import { formatKg, greeting } from '@/lib/dates';
 import { dailyTargets, eatenToday, trainingBoost } from '@/lib/nutrition';
-import { duel, rivals } from '@/lib/players';
+import { Duel, useApi } from '@/lib/useApi';
 import { useStore } from '@/lib/store';
 import { allRanked, dayHeat, doneSets, exerciseForSlot, level, nextDayId, suggestion, weekStreak } from '@/lib/workout';
 import { colors } from '@/theme/tokens';
@@ -28,8 +28,6 @@ export default function Home() {
   const target = dailyTargets(state);
   const eaten = eatenToday(state);
   const boost = trainingBoost(state);
-  const rival = rivals(state)[0];
-  const d = duel(state, rival.id);
   const upgrade = day.slots
     .map((_, i) => exerciseForSlot(state, state.profile.hero, dayId, i))
     .map((id) => ({ id, s: suggestion(state.history, id) }))
@@ -91,26 +89,7 @@ export default function Home() {
         </Pressable>
       </Panel>
 
-      <Pressable onPress={() => router.push({ pathname: '/duel/[id]', params: { id: rival.id } })} accessibilityRole="button">
-        <Card>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <Row gap={6}>
-              <Icon name="versus" size={16} color={colors.muted} />
-              <T v="kicker">Duel · last 7 days</T>
-            </Row>
-            <T v="small">{d.score.you} – {d.score.them} · open</T>
-          </Row>
-          <Row style={{ justifyContent: 'space-between' }}>
-            <T v="h2" color={h.bright}>YOU {d.week.you.sets}</T>
-            <T v="kicker" color={colors.faint}>sets</T>
-            <T v="h2" color={hero(rival.hero).bright}>{d.week.them.sets} {rival.name.toUpperCase()}</T>
-          </Row>
-          <View style={{ flexDirection: 'row', height: 10, gap: 3, borderRadius: 999, overflow: 'hidden' }}>
-            <View style={{ flex: Math.max(1, d.week.you.sets), backgroundColor: h.color }} />
-            <View style={{ flex: Math.max(1, d.week.them.sets), backgroundColor: hero(rival.hero).color }} />
-          </View>
-        </Card>
-      </Pressable>
+      <DuelCard />
 
       <Row gap={10} style={{ alignItems: 'stretch' }}>
         <Pressable style={{ flex: 1 }} onPress={() => router.push('/diet')}>
@@ -143,3 +122,48 @@ export default function Home() {
   );
 }
 
+
+/** Your duel vs your main rival, or a nudge to pick one. */
+function DuelCard() {
+  const { state } = useStore();
+  const h = hero(state.profile.hero);
+  const rival = state.profile.rivalName.trim().toLowerCase();
+  const { data: d } = useApi<Duel>(rival ? `/duels/${encodeURIComponent(rival)}` : null);
+  if (!d) {
+    return (
+      <Pressable onPress={() => router.push('/rankings')} accessibilityRole="button">
+        <Card>
+          <Row gap={6}>
+            <Icon name="versus" size={16} color={colors.muted} />
+            <T v="kicker">Duel</T>
+          </Row>
+          <T v="small">{rival ? `Couldn't load your duel with @${rival}. Tap to check Rankings.` : 'Pick a rival in Rankings and race them every week.'}</T>
+        </Card>
+      </Pressable>
+    );
+  }
+  const them = hero(asHero(d.rival.hero));
+  const you = d.rows.find((r) => r.label === 'Sets');
+  return (
+    <Pressable onPress={() => router.push({ pathname: '/duel/[id]', params: { id: rival } })} accessibilityRole="button">
+      <Card>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <Row gap={6}>
+            <Icon name="versus" size={16} color={colors.muted} />
+            <T v="kicker">Duel · last 7 days</T>
+          </Row>
+          <T v="small">{d.score.you} – {d.score.them} · open</T>
+        </Row>
+        <Row style={{ justifyContent: 'space-between' }}>
+          <T v="h2" color={h.bright}>YOU {you?.you ?? 0}</T>
+          <T v="kicker" color={colors.faint}>sets</T>
+          <T v="h2" color={them.bright}>{you?.them ?? 0} @{d.rival.username.toUpperCase()}</T>
+        </Row>
+        <View style={{ flexDirection: 'row', height: 8, gap: 3, borderRadius: 999, overflow: 'hidden' }}>
+          <View style={{ flex: Math.max(0.05, you?.you ?? 0), backgroundColor: h.color }} />
+          <View style={{ flex: Math.max(0.05, you?.them ?? 0), backgroundColor: them.color }} />
+        </View>
+      </Card>
+    </Pressable>
+  );
+}

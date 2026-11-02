@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="%LANG_ISO_CODE%">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!--
+      Phone-browser behaviour that matches the app:
+      - viewport-fit=cover: draw under the notch (safe areas are handled by the app)
+      - maximum-scale=1: iOS won't zoom in when you tap an input
+    -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>%WEB_TITLE%</title>
+
+    <!-- Dark browser bars, and "Add to Home Screen" opens full-screen like an app -->
+    <meta name="theme-color" content="#0B0D12" />
+    <meta name="color-scheme" content="dark" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Big N Bald" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      html,
+      body {
+        height: 100%;
+        background: #0b0d12;
+      }
+      body {
+        /* Scrolling happens inside the app's ScrollViews, like on a phone */
+        overflow: hidden;
+        /* No rubber-band bounce or pull-to-refresh on the page itself */
+        overscroll-behavior: none;
+        /* No grey flash when tapping, no long-press text selection on buttons */
+        -webkit-tap-highlight-color: transparent;
+        -webkit-touch-callout: none;
+        -webkit-user-select: none;
+        user-select: none;
+        -webkit-text-size-adjust: 100%;
+      }
+      input,
+      textarea {
+        -webkit-user-select: text;
+        user-select: text;
+      }
+      #root {
+        display: flex;
+        flex: 1;
+        height: 100%;
+        /* Follows the phone browser's address bar as it shows and hides */
+        height: 100dvh;
+      }
+    </style>
+  </head>
+
+  <body>
+    <noscript> You need to enable JavaScript to run this app. </noscript>
+    <div id="root"></div>
+  </body>
+</html>

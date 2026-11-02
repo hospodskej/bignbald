@@ -14,17 +14,27 @@ A free lifting + diet app for iPhone, Android and web, built with Expo (React Na
 
 ## Run it
 
+Two terminals:
+
 ```bash
+# 1. the API (Node 24+)
+cd server
 npm install
-npx expo start          # press w for web, or scan the QR code with Expo Go
-npm run build:web       # static web build in dist/
+npm run setup        # first time only
+npm run dev
+
+# 2. the app
+npm install
+npx expo start       # press w for the browser, or scan the QR code with Expo Go
 ```
 
-On a wide screen the web app renders inside a phone frame, so it looks exactly like the mobile app.
+On a computer the web app shows inside a phone frame; on a phone browser it runs full-screen like the app (and can be added to the home screen).
 
-## What is demo data (for now)
+## Accounts and data
 
-There is no backend yet. Everything you log is saved on your device. The global leaderboard players and your rivals' stats are generated demo data until accounts and the server exist. Barcode scanning is planned for the camera build + food database.
+You sign up or log in before anything else. Workouts, profile and body weight sync to the server
+(workouts wait in a queue if you're offline). Leaderboards and duels use everyone's real logged sets.
+Barcode scanning is still to come.
 
 ## Code map
 
@@ -33,7 +43,8 @@ Single source of truth: content lives once as data, and types come from it.
 | Folder | What |
 | --- | --- |
 | `src/data` | Heroes, plans, exercises (+ variants), muscles, rank tiers, foods (per 100 g), recipes, nutrients |
-| `src/lib` | Pure logic: workouts & progression, nutrition targets, meal plans & groceries, demo players, store |
+| `src/lib` | Logic: workouts & progression, nutrition targets, meal plans & groceries, store, API client and sync |
+| `server` | The API (AdonisJS), see `server/README.md` |
 | `src/components` | UI kit, body map, lift animation, hero badge, rank badges, tab bar, phone frame |
 | `src/app` | Screens (Expo Router, file = route) |
 | `src/theme` | Colours, fonts, spacing |

@@ -43,3 +43,5 @@ export type HeroId = keyof typeof HEROES;
 export type Hero = (typeof HEROES)[HeroId];
 export const HERO_IDS = Object.keys(HEROES) as HeroId[];
 export const hero = (id: HeroId): Hero => HEROES[id];
+/** Server data is just text; fall back to the Brawler if a hero id is unknown. */
+export const asHero = (id: string): HeroId => (id in HEROES ? (id as HeroId) : 'brawler');

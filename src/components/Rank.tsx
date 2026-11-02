@@ -30,3 +30,12 @@ export function RankEmblem({ color, division, size = 200 }: { color: string; div
     </Svg>
   );
 }
+
+/** Same look as RankPill, for ranks the server already turned into text. */
+export function RankTag({ label, color }: { label: string; color: string }) {
+  return (
+    <View style={{ alignSelf: 'flex-start', borderWidth: 1.5, borderColor: color, borderRadius: 6, paddingHorizontal: 6, paddingVertical: 1, transform: [{ skewX: '-8deg' }] }}>
+      <Text style={{ fontFamily: fonts.display, fontSize: 12, color, letterSpacing: 0.5, transform: [{ skewX: '8deg' }] }}>{label.toUpperCase()}</Text>
+    </View>
+  );
+}
